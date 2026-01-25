@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ليمونة | محرر الفواتير الذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;700&display=swap');
+        body { font-family: 'Alexandria', sans-serif; color: #1e293b; background-color: #f8fafc; font-size: 13px; }
+        .invoice-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .editable { transition: 0.2s; border-radius: 3px; padding: 2px 4px; border-bottom: 1px dashed transparent; }
+        .editable:hover { background-color: #f1f5f9; border-bottom-color: #cbd5e1; cursor: text; }
+        .editable:focus { outline: none; background-color: #fff; border-bottom-color: #10b981; }
+        
+        /* تنسيق منطقة اللوجو */
+        .logo-container { width: 100px; height: 100px; cursor: pointer; position: relative; transition: 0.3s; }
+        .logo-placeholder { border: 2px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: #f8fafc; color: #94a3b8; font-size: 10px; text-align: center; padding: 10px; height: 100%; }
+        .logo-container:hover .logo-placeholder { border-color: #10b981; background: #f0fdf4; color: #10b981; }
+        #logo-preview { width: 100%; height: 100%; object-contain: contain; display: none; border-radius: 8px; }
+
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white; padding: 0; font-size: 11px; }
+            .invoice-card { box-shadow: none; border: 1px solid #eee; margin: 0; width: 100%; padding: 20px !important; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <div class="max-w-4xl mx-auto mb-4 no-print flex justify-between items-center bg-white p-3 rounded-xl border shadow-sm">
+        <div class="font-bold text-emerald-600 flex items-center gap-1 font-black italic"> 
+                                        <a href="https://www.facebook.com/basharessam11" target="_blank"
+                                            class="footer-link fw-bolder"> © made with by bashar essam❤️
+                                        </a></div>
+        <button onclick="window.print()" class="bg-slate-900 text-white px-6 py-2 rounded-lg text-sm hover:bg-slate-800 transition shadow-lg shadow-slate-200">طباعة الفاتورة</button>
+    </div>
+
+    <div class="max-w-4xl mx-auto invoice-card p-10 md:p-14">
+        <div class="flex justify-between items-center mb-10 border-b pb-8">
+            <div class="flex items-center gap-6">
+                <div class="logo-container" onclick="document.getElementById('logo-input').click()">
+                    <div id="logo-empty" class="logo-placeholder">
+                        اضغط هنا لرفع الشعار
+                    </div>
+                    <img id="logo-preview" src="#" alt="شعار الشركة">
+                    <input type="file" id="logo-input" class="hidden" accept="image/*" onchange="previewLogo(this)">
+                </div>
+                <h1 class="text-3xl font-black text-slate-200 tracking-tighter uppercase italic">Invoice</h1>
+            </div>
+            <div class="text-left space-y-1">
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">رقم الفاتورة</div>
+                <div contenteditable="true" class="editable font-bold text-base text-slate-800 tracking-tight">#INV-2026-001</div>
+                <div contenteditable="true" class="editable text-xs text-slate-500" id="inv-date">25 Jan 2026</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 mb-10 bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+            <div class="space-y-1">
+                <h4 class="text-[9px] font-black text-emerald-600 uppercase mb-2 tracking-widest">بيانات المورد (البائع)</h4>
+                <div contenteditable="true" class="editable font-bold text-slate-800 text-sm" id="seller-name">اسم مؤسستك التجارية</div>
+                <div class="flex items-center gap-1 text-[11px] text-slate-500 mt-2">
+                    <span>الرقم الضريبي:</span>
+                    <div contenteditable="true" class="editable font-mono font-bold text-slate-700" id="seller-vat">300012345600003</div>
+                </div>
+                <div contenteditable="true" class="editable text-[11px] text-slate-400">المملكة العربية السعودية، الرياض</div>
+            </div>
+
+            <div class="border-r border-slate-200 pr-8 space-y-1">
+                <h4 class="text-[9px] font-black text-blue-600 uppercase mb-2 tracking-widest text-left">بيانات العميل</h4>
+                <div contenteditable="true" class="editable font-bold text-slate-800 text-sm text-left">اسم العميل أو الشركة</div>
+                <div contenteditable="true" class="editable text-[11px] text-slate-500 text-left">الرقم الضريبي: 310000000000003</div>
+                <div contenteditable="true" class="editable text-[11px] text-slate-400 text-left">العنوان التفصيلي، المدينة</div>
+            </div>
+        </div>
+
+        <table class="w-full text-right mb-6">
+            <thead>
+                <tr class="text-slate-400 text-[10px] uppercase border-b border-slate-100">
+                    <th class="pb-4 font-bold">الوصف</th>
+                    <th class="pb-4 text-center w-24">الكمية</th>
+                    <th class="pb-4 text-center w-32">السعر</th>
+                    <th class="pb-4 text-left w-32">الإجمالي</th>
+                    <th class="pb-4 w-8 no-print"></th>
+                </tr>
+            </thead>
+            <tbody id="items-body">
+                <tr class="border-b border-slate-50 group hover:bg-slate-50/30 transition">
+                    <td class="py-4"><div contenteditable="true" class="editable font-medium text-slate-700">أدخل وصف البند أو الخدمة هنا</div></td>
+                    <td class="py-4 text-center"><input type="number" value="1" class="qty editable text-center w-full font-bold" oninput="calculate()"></td>
+                    <td class="py-4 text-center"><input type="number" value="100" class="price editable text-center w-full font-bold" oninput="calculate()"></td>
+                    <td class="py-4 text-left font-bold text-slate-800 line-total">100.00</td>
+                    <td class="py-4 no-print text-center"><button onclick="this.parentElement.parentElement.remove(); calculate();" class="text-slate-200 hover:text-red-400 transition">✕</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button onclick="addRow()" class="no-print mb-12 text-emerald-500 font-bold text-[11px] flex items-center gap-2 hover:bg-emerald-50 px-3 py-1 rounded-lg w-fit transition">
+            <span class="bg-emerald-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px]">+</span> إضافة بند جديد
+        </button>
+
+        <div class="flex flex-col md:flex-row justify-between items-start gap-12 border-t pt-10">
+            <div>
+                <div id="qrcode" class="p-2 border bg-white rounded-xl shadow-sm inline-block"></div>
+                <p class="text-[9px] text-slate-400 mt-3 text-center md:text-right font-bold uppercase tracking-tighter opacity-70">
+                    Simplified Tax Invoice <br> فاتورة ضريبية مبسطة
+                </p>
+            </div>
+
+            <div class="w-full md:w-72 space-y-3">
+                <div class="flex justify-between text-xs text-slate-500">
+                    <span>المجموع الفرعي</span>
+                    <span id="subtotal" class="font-bold">0.00</span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 border-b border-slate-100 pb-2">
+                    <span>الضريبة (15%)</span>
+                    <span id="vat-amount" class="font-bold">0.00</span>
+                </div>
+                <div class="flex justify-between font-bold text-sm text-slate-800">
+                    <span>الإجمالي شامل الضريبة</span>
+                    <span id="total-with-vat">0.00</span>
+                </div>
+                
+                <div class="flex justify-between items-center bg-red-50 p-3 rounded-xl border border-red-100 text-red-700">
+                    <div class="flex items-center gap-1 font-bold text-[11px]">
+                        <span>الخصم المستقطع</span>
+                        <select id="discType" onchange="calculate()" class="text-[9px] border-none bg-white px-1 rounded no-print font-normal shadow-sm">
+                            <option value="flat">ريال</option>
+                            <option value="perc">%</option>
+                        </select>
+                    </div>
+                    <input type="number" id="discVal" value="0" class="w-16 text-left font-bold bg-transparent outline-none" oninput="calculate()">
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-900 text-white p-5 rounded-2xl shadow-xl shadow-slate-200">
+                    <span class="text-[10px] font-bold uppercase opacity-60">الصافي للدفع</span>
+                    <div class="text-left leading-none">
+                        <span class="text-2xl font-black" id="grand-total">0.00</span>
+                        <span class="text-[10px] opacity-60 ml-1">SAR</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // دالة رفع اللوجو والتحكم في مظهره
+        function previewLogo(input) {
+            const file = input.files[0];
+            const emptyState = document.getElementById('logo-empty');
+            const preview = document.getElementById('logo-preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    emptyState.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addRow() {
+            const row = `<tr class="border-b border-slate-50 group hover:bg-slate-50/30 transition">
+                <td class="py-4"><div contenteditable="true" class="editable font-medium text-slate-700">وصف بند جديد</div></td>
+                <td class="py-4 text-center"><input type="number" value="1" class="qty editable text-center w-full font-bold" oninput="calculate()"></td>
+                <td class="py-4 text-center"><input type="number" value="0" class="price editable text-center w-full font-bold" oninput="calculate()"></td>
+                <td class="py-4 text-left font-bold text-slate-800 line-total">0.00</td>
+                <td class="py-4 no-print text-center"><button onclick="this.parentElement.parentElement.remove(); calculate();" class="text-slate-200 hover:text-red-400 transition">✕</button></td>
+            </tr>`;
+            document.getElementById('items-body').insertAdjacentHTML('beforeend', row);
+        }
+
+        function calculate() {
+            let sub = 0;
+            document.querySelectorAll('#items-body tr').forEach(row => {
+                const q = parseFloat(row.querySelector('.qty').value) || 0;
+                const p = parseFloat(row.querySelector('.price').value) || 0;
+                const total = q * p;
+                row.querySelector('.line-total').innerText = total.toFixed(2);
+                sub += total;
+            });
+
+            const vat = sub * 0.15;
+            const totalWithVat = sub + vat;
+
+            const dVal = parseFloat(document.getElementById('discVal').value) || 0;
+            const dType = document.getElementById('discType').value;
+            const discAmt = (dType === 'perc') ? (totalWithVat * (dVal/100)) : dVal;
+            const grand = Math.max(0, totalWithVat - discAmt);
+
+            document.getElementById('subtotal').innerText = sub.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('vat-amount').innerText = vat.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('total-with-vat').innerText = totalWithVat.toLocaleString('en-US', {minimumFractionDigits: 2});
+            document.getElementById('grand-total').innerText = grand.toLocaleString('en-US', {minimumFractionDigits: 2});
+            
+            genQR(grand, vat);
+        }
+
+        function genQR(total, vat) {
+            const seller = document.getElementById('seller-name').innerText;
+            const taxNo = document.getElementById('seller-vat').innerText;
+            const time = new Date().toISOString();
+            function tlv(tag, val) {
+                const v = new TextEncoder().encode(val);
+                return new Uint8Array([tag, v.length, ...v]);
+            }
+            const data = new Uint8Array([...tlv(1, seller), ...tlv(2, taxNo), ...tlv(3, time), ...tlv(4, total.toFixed(2)), ...tlv(5, vat.toFixed(2))]);
+            const b64 = btoa(String.fromCharCode(...data));
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: b64, width: 85, height: 85, correctLevel: QRCode.CorrectLevel.M });
+        }
+        calculate();
+    </script>
+</body>
+</html>
