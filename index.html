@@ -238,7 +238,7 @@
             const data = new Uint8Array([...tlv(1, s), ...tlv(2, t), ...tlv(3, time), ...tlv(4, total.toFixed(2)), ...tlv(5, vat.toFixed(2))]);
             const b64 = btoa(String.fromCharCode(...data));
             document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: b64, width: 80, height: 80, correctLevel: QRCode.CorrectLevel.M });
+            new QRCode(document.getElementById("qrcode"), { text: b64, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
         }
 
         window.onload = loadData;
