@@ -14,28 +14,17 @@
         .editable:hover { background-color: #f1f5f9; border-bottom-color: #cbd5e1; cursor: text; }
         .editable:focus { outline: none; background-color: #fff; border-bottom-color: #10b981; }
         
-        /* منطقة اللوجو الذكية */
+        /* منطقة اللوجو */
         .logo-container { 
             width: 120px; height: 120px; position: relative; border: 2px dashed #e2e8f0; 
             border-radius: 12px; overflow: hidden; background: #f8fafc; 
             display: flex; align-items: center; justify-content: center; transition: 0.3s;
         }
-        
-        /* كلاس يضاف عند رفع الصورة لإخفاء الإطار والخلفية */
         .logo-container.has-image { border: none !important; background: transparent !important; }
 
-        #logo-input { 
-            position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; 
-            cursor: pointer; z-index: 100; 
-        }
-        #logo-preview { 
-            max-width: 100%; max-height: 100%; object-fit: contain; 
-            display: none; position: relative; z-index: 10;
-        }
-        .logo-placeholder { 
-            position: absolute; color: #94a3b8; font-size: 9px; 
-            text-align: center; padding: 10px; z-index: 5; pointer-events: none;
-        }
+        #logo-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 100; }
+        #logo-preview { max-width: 100%; max-height: 100%; object-fit: contain; display: none; position: relative; z-index: 10; }
+        .logo-placeholder { position: absolute; color: #94a3b8; font-size: 9px; text-align: center; padding: 10px; z-index: 5; pointer-events: none; }
 
         @media print { 
             .no-print { display: none !important; } 
@@ -51,8 +40,8 @@
             <a href="https://www.facebook.com/basharessam11" target="_blank"> © bashar essam❤️</a>
         </div>
         <div class="flex gap-2">
-            <button onclick="resetInvoice()" class="bg-red-50 text-red-600 px-4 py-1.5 rounded-lg text-xs hover:bg-red-100 border border-red-200 transition">فاتورة جديدة</button>
-            <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-1.5 rounded-lg text-xs hover:bg-slate-800 shadow-lg transition">طباعة</button>
+            <button onclick="resetInvoice()" class="bg-red-50 text-red-600 px-4 py-1.5 rounded-lg text-xs hover:bg-red-100 border border-red-200">فاتورة جديدة</button>
+            <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-1.5 rounded-lg text-xs hover:bg-slate-800 shadow-lg">طباعة</button>
         </div>
     </div>
 
@@ -105,11 +94,24 @@
 
         <div class="flex flex-col md:flex-row justify-between items-start gap-10 mt-10 border-t pt-8">
             <div id="qrcode" class="p-1.5 border bg-white rounded-lg shadow-sm"></div>
+            
             <div class="w-full md:w-64 space-y-2 text-[11px]">
                 <div class="flex justify-between text-slate-500"><span>المجموع الفرعي</span><span id="sub-total">0.00</span></div>
                 <div class="flex justify-between text-slate-500 border-b pb-1"><span>الضريبة (15%)</span><span id="vat-total">0.00</span></div>
+                
+                <div class="flex justify-between items-center bg-red-50 p-2 rounded-lg border border-red-100 text-red-700">
+                    <div class="flex items-center gap-1 font-bold text-[10px]">
+                        <span>الخصم</span>
+                        <select id="d-type" onchange="calculateAll()" class="text-[8px] border bg-white rounded no-print">
+                            <option value="f">ريال</option>
+                            <option value="p">%</option>
+                        </select>
+                    </div>
+                    <input type="number" id="d-val" value="0" class="w-16 text-left font-bold bg-transparent outline-none" oninput="calculateAll()">
+                </div>
+
                 <div class="bg-slate-900 text-white p-3 rounded-xl flex justify-between items-center shadow-lg">
-                    <span class="text-[9px] font-bold opacity-60 uppercase">الإجمالي النهائي</span>
+                    <span class="text-[9px] font-bold opacity-60 uppercase">الصافي للدفع</span>
                     <span class="text-lg font-black" id="net-total">0.00</span>
                 </div>
             </div>
@@ -125,12 +127,10 @@
                     const box = document.getElementById('logo-box');
                     const preview = document.getElementById('logo-preview');
                     const empty = document.getElementById('logo-empty');
-                    
                     preview.src = e.target.result;
                     preview.style.display = 'block';
                     empty.style.display = 'none';
-                    box.classList.add('has-image'); // إضافة الكلاس لإخفاء الفرام والخلفية
-                    
+                    box.classList.add('has-image');
                     localStorage.setItem('saved_logo_bashar', e.target.result);
                 }
                 reader.readAsDataURL(file);
@@ -141,7 +141,7 @@
             const row = document.createElement('tr');
             row.className = "border-b border-slate-50";
             row.innerHTML = `
-                <td class="py-3"><div contenteditable="true" class="editable font-medium text-slate-700" oninput="calculateAll()">${desc || "وصف الخدمة..."}</div></td>
+                <td class="py-3"><div contenteditable="true" class="editable font-medium text-slate-700" oninput="calculateAll()">${desc || "بند جديد..."}</div></td>
                 <td class="py-3 text-center"><input type="number" value="${qty}" class="qty editable text-center w-full font-bold" oninput="calculateAll()"></td>
                 <td class="py-3 text-center"><input type="number" value="${price}" class="price editable text-center w-full font-bold text-emerald-600" oninput="calculateAll()"></td>
                 <td class="py-3 text-left font-bold row-sum">0.00</td>
@@ -163,12 +163,19 @@
                 sub += total;
                 tableItems.push({ d, q, p });
             });
+
             const vat = sub * 0.15;
             const totalWithVat = sub + vat;
+            const dv = parseFloat(document.getElementById('d-val').value) || 0;
+            const dt = document.getElementById('d-type').value;
+            const da = (dt === 'p') ? (totalWithVat * (dv/100)) : dv;
+            const net = Math.max(0, totalWithVat - da);
+
             document.getElementById('sub-total').innerText = sub.toLocaleString('en-US', {minimumFractionDigits:2});
             document.getElementById('vat-total').innerText = vat.toLocaleString('en-US', {minimumFractionDigits:2});
-            document.getElementById('net-total').innerText = totalWithVat.toLocaleString('en-US', {minimumFractionDigits:2});
-            genQR(totalWithVat, vat);
+            document.getElementById('net-total').innerText = net.toLocaleString('en-US', {minimumFractionDigits:2});
+            
+            genQR(net, vat);
             saveAll(tableItems);
         }
 
@@ -180,6 +187,8 @@
                 st: document.getElementById('s-tax').innerText,
                 cn: document.getElementById('c-name').innerText,
                 ct: document.getElementById('c-tax').innerText,
+                dv: document.getElementById('d-val').value,
+                dtp: document.getElementById('d-type').value,
                 items: items || Array.from(document.querySelectorAll('#items-list tr')).map(row => ({
                     d: row.cells[0].innerText, q: row.querySelector('.qty').value, p: row.querySelector('.price').value
                 }))
@@ -194,10 +203,8 @@
                 const preview = document.getElementById('logo-preview');
                 const empty = document.getElementById('logo-empty');
                 const box = document.getElementById('logo-box');
-                preview.src = logo;
-                preview.style.display = 'block';
-                empty.style.display = 'none';
-                box.classList.add('has-image');
+                preview.src = logo; preview.style.display = 'block';
+                empty.style.display = 'none'; box.classList.add('has-image');
             }
             if (saved) {
                 const d = JSON.parse(saved);
@@ -207,14 +214,15 @@
                 document.getElementById('s-tax').innerText = d.st;
                 document.getElementById('c-name').innerText = d.cn;
                 document.getElementById('c-tax').innerText = d.ct;
+                document.getElementById('d-val').value = d.dv || 0;
+                document.getElementById('d-type').value = d.dtp || "f";
                 d.items.forEach(i => addNewRow(i.d, i.q, i.p));
             } else { addNewRow(); }
         }
 
         function resetInvoice() {
-            if(confirm("هل تريد مسح البيانات وبدء فاتورة جديدة؟")) { 
+            if(confirm("مسح كل البيانات والبدء من جديد؟")) { 
                 localStorage.removeItem('bashar_invoice_data'); 
-                localStorage.removeItem('saved_logo_bashar');
                 location.reload(); 
             }
         }
