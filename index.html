@@ -64,8 +64,9 @@
                     <div id="logo-empty" class="logo-placeholder">اضغط هنا لرفع الشعار</div>
                     <img id="logo-preview" src="#" alt="شعار">
                 </div>
-                <h1 class="text-3xl font-black text-slate-100 tracking-tighter uppercase italic">Tax Invoice</h1>
             </div>
+            <!-- <h1 class="text-3xl font-black text-slate-100 tracking-tighter uppercase italic text-center">  </h1> -->
+            <h1 class="text-3xl font-black uppercase italic text-center">فاتورة ضريبية</h1>
             <div class="text-left">
                 <div contenteditable="true" id="inv-id" oninput="saveAll(); genQRFromCurrentData();" class="editable font-bold text-sm">#INV-2026-001</div>
                 <div contenteditable="true" id="inv-dt" oninput="saveAll(); genQRFromCurrentData();" class="editable text-[15px] text-slate-500 mt-1">25/01/2026</div>
@@ -74,7 +75,7 @@
 
         <div class="grid grid-cols-2 gap-8 mb-8 bg-slate-50/50 p-5 rounded-xl border border-slate-100">
             <div>
-                        <button   class="no-print text-emerald-600 font-bold text-[15px] hover:underline">المورد</button>
+                        <div class="text-emerald-600 font-bold text-[15px] hover:underline">المورد</div>
 
                  <div contenteditable="true" id="s-name" oninput="saveAll(); genQRFromCurrentData();" class="editable font-bold text-slate-800">اسم مؤسستك</div>
                 <div class="flex items-center gap-1 text-[15px] text-slate-500 mt-1">
@@ -87,10 +88,10 @@
                 </div>
             </div>
             <div class="border-r border-slate-200 pr-8">
-  <button   class="no-print text-emerald-600 font-bold text-[10px] hover:underline">العميل</button>
+  <div class="text-emerald-600 font-bold text-[15px] hover:underline">العميل</div>
                 <div contenteditable="true" id="c-name" oninput="saveAll()" class="editable font-bold text-slate-800 text-right">اسم العميل</div>
-                <div contenteditable="true" id="c-tax" oninput="saveAll()" class="editable text-[10px] text-slate-500 text-right mt-1">الرقم الضريبي للعميل</div>
-                <div contenteditable="true" id="c-address" oninput="saveAll()" class="editable text-[10px] text-slate-500 text-right mt-1">العنوان الوطني للعميل</div>
+                <div contenteditable="true" id="c-tax" oninput="saveAll()" class="editable text-[15px] text-slate-500 text-right mt-1">الرقم الضريبي للعميل</div>
+                <div contenteditable="true" id="c-address" oninput="saveAll()" class="editable text-[15px] text-slate-500 text-right mt-1">العنوان الوطني للعميل</div>
             </div>
         </div>
 
