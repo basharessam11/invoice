@@ -66,7 +66,7 @@
                 </div>
             </div>
             <!-- <h1 class="text-3xl font-black text-slate-100 tracking-tighter uppercase italic text-center">  </h1> -->
-            <h1 class="text-3xl font-black uppercase italic text-center">فاتورة ضريبية</h1>
+            <h1 class="text-3xl font-black uppercase italic text-center">فاتورة ضريبة   tax invoice</h1>
             <div class="text-left">
                 <div contenteditable="true" id="inv-id" oninput="saveAll(); genQRFromCurrentData();" class="editable font-bold text-sm">#INV-2026-001</div>
                 <div contenteditable="true" id="inv-dt" oninput="saveAll(); genQRFromCurrentData();" class="editable text-[15px] text-slate-500 mt-1">25/01/2026</div>
@@ -98,12 +98,12 @@
         <table class="w-full text-right mb-4">
             <thead>
                 <tr class="text-slate-400 text-[9px] uppercase border-b border-slate-100">
-                    <th class="pb-3">الوصف</th>
-                    <th class="pb-3 text-center w-28">الكمية</th>
-                    <th class="pb-3 text-center w-32">السعر</th>
-                    <th class="pb-3 text-center w-28">الضريبة %</th>
-                    <th class="pb-3 text-left w-28">المبلغ</th>
-                    <th class="pb-3 w-8 no-print"></th>
+                    <th  style="color: black; font-weight: bold; font-size: 12px;" class="pb-3 font-black">الوصف</th>
+                    <th style="color: black; font-weight: bold; font-size: 12px;" class="pb-3 font-black text-center w-28">الكمية</th>
+                    <th style="color: black; font-weight: bold; font-size: 12px;" class="pb-3 font-black text-center w-32">السعر</th>
+                    <th style="color: black; font-weight: bold; font-size: 12px;" class="pb-3 font-black text-center w-28">الضريبة %</th>
+                    <th style="color: black; font-weight: bold; font-size: 12px;" class="pb-3 font-black text-left w-28">المبلغ</th>
+                    <th style="color: black; font-weight: bold; font-size: 12px;" class="pb-3 font-black w-8 no-print"></th>
                 </tr>
             </thead>
             <tbody id="items-list"></tbody>
@@ -132,12 +132,12 @@
                 <div class="flex justify-between items-center bg-red-50 p-2 rounded-lg border border-red-100 text-red-700">
                     <div class="flex items-center gap-1 font-bold text-[10px]">
                         <span>الخصم</span>
-                        <select id="d-type" onchange="calculateAll()" class="text-[8px] border bg-white rounded no-print">
+                        <select id="d-type" style="height: 35px;" onchange="calculateAll()" class="text-[8px] border bg-white rounded no-print">
                             <option value="f">ريال</option>
                             <option value="p">%</option>
                         </select>
                     </div>
-                    <input type="number" id="d-val" value="0" class="w-16 text-left font-bold bg-transparent outline-none" oninput="calculateAll()">
+                    <input type="number" id="d-val" style="height: 35px;" value="0" class="w-16 text-left font-bold bg-transparent outline-none" oninput="calculateAll()">
                 </div>
 
                 <div class="bg-slate-900 text-white p-3 rounded-xl flex justify-between items-center shadow-lg">
