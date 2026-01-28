@@ -6,6 +6,8 @@
     <title>بشار عصام | نظام الفواتير الذكي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;700&display=swap');
         body { font-family: 'Alexandria', sans-serif; color: #1e293b; background-color: #f8fafc; font-size: 18px; }
@@ -40,6 +42,7 @@
             <a href="https://www.facebook.com/basharessam11" target="_blank"> © bashar essam❤️</a>
         </div>
         <div class="flex gap-2">
+            <button onclick="exportToPDF()" class="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-lg text-xs hover:bg-blue-100 border border-blue-200">تصدير PDF</button>
             <button onclick="resetInvoice()" class="bg-red-50 text-red-600 px-4 py-1.5 rounded-lg text-xs hover:bg-red-100 border border-red-200">فاتورة جديدة</button>
             <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-1.5 rounded-lg text-xs hover:bg-slate-800 shadow-lg">طباعة</button>
         </div>
@@ -256,6 +259,52 @@
             } else { addNewRow(); }
         }
 
+        function exportToPDF() {
+            // التحقق من وجود المكتبات
+            if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+                alert('جاري تحميل مكتبات PDF... برجاء الانتظار ثواني ثم المحاولة مرة أخرى.');
+                return;
+            }
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const element = document.querySelector('.invoice-card');
+                
+                html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: true
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png', 1.0);
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 210;
+                    const pageHeight = 295;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    pdf.save(`فاتورة_${document.getElementById('inv-id').innerText.replace('#', '')}.pdf`);
+                }).catch(error => {
+                    console.error('خطأ في تصدير PDF:', error);
+                    alert('حدث خطأ أثناء تصدير PDF. برجاء المحاولة مرة أخرى.');
+                });
+            } catch (error) {
+                console.error('خطأ في مكتبات PDF:', error);
+                alert('مكتبات PDF جاري التحميل... برجاء الانتظار ثم المحاولة مرة أخرى.');
+            }
+        }
+
         function resetInvoice() {
             if(confirm("مسح كل البيانات والبدء من جديد؟")) { 
                 localStorage.removeItem('bashar_invoice_data'); 
@@ -282,18 +331,79 @@
         function genQR(total, vat) {
             const s = document.getElementById('s-name').innerText;
             const t = document.getElementById('s-tax').innerText;
-            const time = document.getElementById('inv-dt').innerText; // استخدام تاريخ الفاتورة المكتوب
+            const time = document.getElementById('inv-dt').innerText;
+            
+            // تحويل التاريخ من DD/MM/YYYY إلى YYYY-MM-DD للهيئة
+            let formattedDate;
+            try {
+                // تقسيم التاريخ المدخل (مثال: 25/01/2026)
+                const dateParts = time.split('/');
+                if (dateParts.length === 3) {
+                    const day = dateParts[0].padStart(2, '0');
+                    const month = dateParts[1].padStart(2, '0');
+                    const year = dateParts[2];
+                    formattedDate = `${year}-${month}-${day}`;
+                } else {
+                    // لو التاريخ مش بالصيغة المتوقعة، نستخدم تاريخ اليوم
+                    formattedDate = new Date().toISOString().split('T')[0];
+                }
+            } catch (e) {
+                // لو في أي خطأ، نستخدم تاريخ اليوم
+                formattedDate = new Date().toISOString().split('T')[0];
+            }
+            
+            // TLV encoding حسب معايير هيئة الزكاة والدخل
             function tlv(tag, val) {
                 const v = new TextEncoder().encode(val);
                 return new Uint8Array([tag, v.length, ...v]);
             }
-            const data = new Uint8Array([...tlv(1, s), ...tlv(2, t), ...tlv(3, time), ...tlv(4, total.toFixed(2)), ...tlv(5, vat.toFixed(2))]);
+            
+            // بيانات الفاتورة الإلكترونية المعتمدة
+            const sellerName = s;
+            const taxNumber = t;
+            const invoiceDate = formattedDate;
+            const totalAmount = total.toFixed(2);
+            const taxAmount = vat.toFixed(2);
+            
+            // إنشاء TLV data
+            const data = new Uint8Array([
+                ...tlv(1, sellerName),      // Seller Name
+                ...tlv(2, taxNumber),        // Tax Registration Number
+                ...tlv(3, invoiceDate),      // Invoice Date
+                ...tlv(4, totalAmount),      // Total Amount
+                ...tlv(5, taxAmount)         // Tax Amount
+            ]);
+            
+            // Base64 encoding
             const b64 = btoa(String.fromCharCode(...data));
+            
+            // إنشاء QR Code
             document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: b64, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
+            new QRCode(document.getElementById("qrcode"), { 
+                text: b64, 
+                width: 120, 
+                height: 120, 
+                correctLevel: QRCode.CorrectLevel.M 
+            });
         }
 
-        window.onload = loadData;
+        // التحقق من تحميل المكتبات كل 3 ثواني
+        let checkLibraries = setInterval(() => {
+            if (typeof window.jspdf !== 'undefined' && typeof html2canvas !== 'undefined') {
+                clearInterval(checkLibraries);
+                console.log('مكتبات PDF تم تحميلها بنجاح!');
+            }
+        }, 3000);
+
+        window.onload = function() {
+            loadData();
+            // التحقق مرة أخرى بعد تحميل الصفحة
+            setTimeout(() => {
+                if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
+                    console.warn('بعض مكتبات PDF لم تتحمل بعد...');
+                }
+            }, 2000);
+        };
     </script>
 </body>
 </html>
