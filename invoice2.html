@@ -236,7 +236,7 @@
                             <option value="p">%</option>
                         </select>
                     </div>
-                    <input type="number" step="any" id="d-val" style="height: 25px;" value="0" class="form-control form-control-sm w-25 text-end" oninput="updateAll()">
+                    <input type="text" id="d-val" style="height: 25px;" value="0" class="form-control form-control-sm w-25 text-end" oninput="enforceEnglishNumbers(this); updateAll()">
                 </div>
 
                 <div class="d-flex justify-content-between mb-1 text-warning">
