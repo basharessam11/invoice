@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة مبيعات ذكية | بشار عصام</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background-color: #f8f9fa; 
+            font-size: 11px; /* خط مضغوط للمنتجات */
+            color: #000;
+        }
+        
+        .invoice-card {
+            background: #fff;
+            max-width: 210mm; /* عرض A4 */
+            margin: 10px auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* هيدر المصانع */
+        .company-header { border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 10px; }
+        .main-title { font-size: 16px; font-weight: 900; letter-spacing: 1px; }
+        
+        /* صناديق البيانات */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .data-box { border: 1px solid #ddd; padding: 6px; border-radius: 4px; background: #fafafa; }
+        .box-label { font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 4px; color: #0d6efd; font-size: 10px; }
+        
+        /* الجدول المضغوط */
+        .table-items thead th { background: #333; color: #fff; border: 1px solid #000; padding: 4px; font-size: 10px; text-align: center; }
+        .table-items tbody td { border: 1px solid #ddd; padding: 1px 3px; vertical-align: middle; }
+        .form-control-sm { font-size: 10px; padding: 1px 3px; border: none; background: transparent; }
+        .form-control-sm:focus { background: #fffde7; border-bottom: 1px solid #ffeb3b; box-shadow: none; border-radius: 2px; }
+        
+        /* خانة الإجمالي المفتوح */
+        .editable-total { font-weight: bold; color: #157347; }
+        
+        /* منطقة التواقيع والباركود */
+        .footer-section { margin-top: 25px; border-top: 1px solid #eee; pt-3: ; display: flex; justify-content: space-between; align-items: end; }
+        .qr-wrapper { width: 85px; height: 85px; border: 1px solid #ddd; padding: 5px; background: #fff; margin-right: auto; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; margin: 0; }
+            .invoice-card { box-shadow: none; margin: 0; width: 100%; max-width: none; padding: 10px; }
+            .table-items thead th { background: #333 !important; -webkit-print-color-adjust: exact; }
+            .data-box { background: #fff !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container no-print mt-3 text-center">
+    <button class="btn btn-primary btn-sm px-4 shadow" onclick="window.print()">طـباعة (PDF)</button>
+    <button class="btn btn-outline-danger btn-sm px-4 shadow" onclick="resetInvoice()">تصفير الفاتورة</button>
+</div>
+
+<div class="invoice-card" id="invoiceArea">
+    <div class="company-header row align-items-center mb-3">
+        <div class="col-5">
+            <h1 class="main-title mb-0" contenteditable="true" id="comp-name"> شركة مصنع الوريف للبلاستيك</h1>
+            <div class="mt-1 text-muted">
+                الرقم الضريبي: <span id="comp-vat" contenteditable="true" class="fw-bold text-dark editable">300056299900003</span><br>
+                السجل التجاري: <span id="comp-reg" contenteditable="true" class="fw-bold text-dark editable">1010229656</span>
+            </div>
+        </div>
+        <div class="col-2 text-center">
+            <h5 class="fw-bold mb-0">فاتورة ضريبية</h5>
+            <div class="badge bg-dark" style="font-size: 9px;">TAX INVOICE</div>
+        </div>
+        <div class="col-5 text-end d-flex justify-content-end align-items-center gap-2">
+            <div class="small text-muted">
+                <span id="comp-addr" contenteditable="true" class="editable">الرياض - المدينة الصناعية الثانية - 14334</span>
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="Company Logo" id="logo-img" class="editable" contenteditable="true" onblur="updateLogoSrc(this)" style="height: 60px; cursor: pointer;">
+        </div>
+    </div>
+
+    <div class="info-grid">
+        <div class="data-box">
+            <div class="box-label">بيانات الفاتورة (Invoice Details)</div>
+            <div class="row g-1">
+                <div class="col-4 text-muted">رقم الفاتورة:</div> <div class="col-8 fw-bold" id="inv-no" contenteditable="true">0003-1519</div>
+                <div class="col-4 text-muted">تاريخ الفاتورة:</div> <div class="col-8"><input type="date" id="inv-date" class="form-control-sm w-100 fw-bold" onchange="updateAll()"></div>
+                <div class="col-4 text-muted">طريقة الدفع:</div> <div class="col-8" id="inv-pay" contenteditable="true">نقدي / Cash</div>
+            </div>
+        </div>
+        <div class="data-box">
+            <div class="box-label">بيانات العميل (Customer Details)</div>
+            <div class="row g-1">
+                <div class="col-4 text-muted">اسم العميل:</div> <div class="col-8 fw-bold" id="cust-name" contenteditable="true"> شركة تصارم للمقاولات</div>
+                <div class="col-4 text-muted">الرقم الضريبي:</div> <div class="col-8" id="cust-vat" contenteditable="true">300063658500003</div>
+                <div class="col-4 text-muted">العنوان/حي:</div> <div class="col-8" id="cust-addr" contenteditable="true">الرياض - حي اشبيلية</div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table-items w-100 mb-2 table-bordered">
+        <thead>
+            <tr>
+                <th width="3%">#</th>
+                <th width="40%">اسم الصنف / الوصف (Item Description)</th>
+                <th width="10%">الكمية</th>
+                <th width="12%">سعر الوحدة</th>
+                <th width="10%">الضريبة 15%</th>
+                <th width="15%">الإجمالي (شامل)</th>
+                <th width="2%" class="no-print"></th>
+            </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+    </table>
+    <button class="btn btn-sm btn-light border no-print w-100 mb-3" onclick="addRow()">+ إضافة صنف جديد (Add Row)</button>
+
+    <div class="row justify-content-end align-items-end">
+        <div class="col-6">
+            <div class="p-2 mb-1 h-100" style="background: #fff;">
+                 <div id="qrcode" class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                    <!-- QR Code will be generated here -->
+                </div>
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="p-2 border rounded bg-dark text-white">
+                <div class="d-flex justify-content-between mb-1">
+                    <span>الإجمالي (غير شامل الضريبة):</span>
+                    <span id="sub-total">0.00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span>الضريبة 15%:</span>
+                    <span id="vat-total">0.00</span>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-1 fw-bold small">
+                        <span>الخصم</span>
+                        <select id="d-type" style="height: 25px;" onchange="updateAll()" class="form-select form-select-sm w-auto">
+                            <option value="f">ريال</option>
+                            <option value="p">%</option>
+                        </select>
+                    </div>
+                    <input type="number" step="any" id="d-val" style="height: 25px;" value="0" class="form-control form-control-sm w-25 text-end" oninput="updateAll()">
+                </div>
+
+                <div class="d-flex justify-content-between mb-1 text-warning">
+                    <span>قيمة الخصم:</span>
+                    <span id="discount-total">0.00</span>
+                </div>
+          
+                <div class="d-flex justify-content-between fw-bold fs-6 pt-1">
+                    <span>الإجمالي المستحق:</span>
+                    <span id="grand-total">0.00</span>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+
+    <div class="footer-section">
+        
+    </div>
+</div>
+
+<script>
+    // تهيئة التاريخ لليوم
+    document.getElementById('inv-date').valueAsDate = new Date();
+
+    function updateLogoSrc(input) {
+        const logoImg = document.getElementById('logo-img');
+        logoImg.src = input.value;
+        saveCache();
+    }
+
+    function addRow(d='', q=1, p=0, total=0) {
+        const tbody = document.getElementById('itemsBody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="text-center text-muted small">${tbody.rows.length + 1}</td>
+            <td><input type="text" class="form-control-sm w-100 item-d" value="${d}" placeholder="اسم الصنف"></td>
+            <td><input type="number" step="any" class="form-control-sm w-100 text-center item-q" value="${q}" oninput="calcByQty(this)"></td>
+            <td><input type="number" step="any" class="form-control-sm w-100 text-center item-p" value="${parseFloat(p).toFixed(2)}" oninput="calcByQty(this)"></td>
+            <td class="text-center item-vat-val">0.00</td>
+            <td><input type="number" step="any" class="form-control-sm w-100 text-center item-total editable-total" value="${parseFloat(total).toFixed(2)}" oninput="calcByTotal(this)"></td>
+            <td class="no-print text-center"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); updateAll()">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+        updateAll();
+    }
+
+    // 1. الحساب التقليدي (كمية * سعر)
+    function calcByQty(input) {
+        const row = input.closest('tr');
+        enforceEnglishNumbers(input); // تحويل الأرقام العربية للإنجليزية
+        
+        const qty = parseFloat(row.querySelector('.item-q').value) || 0;
+        const price = parseFloat(row.querySelector('.item-p').value) || 0;
+        
+        const lineSub = qty * price;
+        const lineVat = lineSub * 0.15;
+        const lineTotal = lineSub + lineVat;
+
+        row.querySelector('.item-vat-val').innerText = lineVat.toFixed(2);
+        row.querySelector('.item-total').value = lineTotal.toFixed(2);
+        updateAll();
+    }
+
+    // تحويل الأرقام العربية إلى إنجليزية
+    function convertArabicToEnglish(arabicNum) {
+        const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        let str = String(arabicNum);
+        for (let i = 0; i < 10; i++) {
+            str = str.replace(new RegExp(arabicDigits[i], 'g'), englishDigits[i]);
+        }
+        return str;
+    }
+
+    // معالجة إدخال الأرقام العربية
+    function enforceEnglishNumbers(input) {
+        let value = input.value;
+        value = convertArabicToEnglish(value);
+        
+        // السماح فقط بالأرقام والنقطة - تجنب النقاط المتعددة
+        let cleanValue = '';
+        let hasDecimal = false;
+        for (let char of value) {
+            if (char >= '0' && char <= '9') {
+                cleanValue += char;
+            } else if (char === '.' && !hasDecimal) {
+                cleanValue += char;
+                hasDecimal = true;
+            }
+        }
+        input.value = cleanValue;
+    }
+
+    // 2. الحساب العكسي (لو كتبت الإجمالي هو يحسب السعر)
+    function calcByTotal(input) {
+        const row = input.closest('tr');
+        if (!row) return;
+
+        // تحويل الأرقام العربية للإنجليزية
+        let rawValue = input.value;
+        rawValue = convertArabicToEnglish(rawValue);
+        
+        // تنظيف القيمة من الأحرف غير المرغوبة
+        let cleanValue = '';
+        let hasDecimal = false;
+        for (let char of rawValue) {
+            if (char >= '0' && char <= '9') {
+                cleanValue += char;
+            } else if (char === '.' && !hasDecimal) {
+                cleanValue += char;
+                hasDecimal = true;
+            }
+        }
+        
+        const totalWithVat = parseFloat(cleanValue) || 0;
+        input.value = cleanValue; // حفظ القيمة المنظفة
+        
+        const qty = parseFloat(row.querySelector('.item-q')?.value) || 0;
+
+        if (qty <= 0 || totalWithVat <= 0) {
+            row.querySelector('.item-p').value = '0';
+            row.querySelector('.item-vat-val').innerText = '0.00';
+            updateAll();
+            return;
+        }
+
+        // السعر قبل الضريبة = الإجمالي / 1.15
+        const lineSub = totalWithVat / 1.15;
+        const lineVat = totalWithVat - lineSub;
+        const unitPrice = lineSub / qty;
+
+        const priceInput = row.querySelector('.item-p');
+        const vatElement = row.querySelector('.item-vat-val');
+
+        if (priceInput) priceInput.value = unitPrice.toFixed(2);
+        if (vatElement) vatElement.innerText = lineVat.toFixed(2);
+
+        updateAll();
+    }
+
+    function updateAll() {
+        let sub = 0; let tax = 0; let discount = 0;
+        document.querySelectorAll('#itemsBody tr').forEach(row => {
+            const q = parseFloat(row.querySelector('.item-q')?.value) || 0;
+            const p = parseFloat(row.querySelector('.item-p')?.value) || 0;
+            const lineSub = q * p;
+            const lineVat = lineSub * 0.15;
+            const lineTotal = lineSub + lineVat;
+            
+            sub += lineSub; 
+            tax += lineVat;
+
+            const vatElement = row.querySelector('.item-vat-val');
+            const totalElement = row.querySelector('.item-total');
+
+            if (vatElement) vatElement.innerText = lineVat.toFixed(2);
+           
+        });
+
+        const discountType = document.getElementById('d-type')?.value;
+        const discountValue = parseFloat(document.getElementById('d-val')?.value) || 0;
+        if (discountType === 'f') {
+            discount = Math.max(0, discountValue);
+        } else if (discountType === 'p') {
+            discount = Math.max(0, (sub * discountValue) / 100);
+        }
+
+        const total = Math.max(0, sub + tax - discount);
+
+        const subTotalElement = document.getElementById('sub-total');
+        const vatTotalElement = document.getElementById('vat-total');
+        const discountTotalElement = document.getElementById('discount-total');
+        const grandTotalElement = document.getElementById('grand-total');
+
+        if (subTotalElement) subTotalElement.innerText = sub.toFixed(2);
+        if (vatTotalElement) vatTotalElement.innerText = tax.toFixed(2);
+        if (discountTotalElement) discountTotalElement.innerText = discount.toFixed(2);
+        if (grandTotalElement) grandTotalElement.innerText = total.toFixed(2);
+
+        // تحديث الباركود بناءً على البيانات الحالية
+        generateZatcaQR(
+            document.getElementById('comp-name')?.innerText || '',
+            document.getElementById('comp-vat')?.innerText || '',
+            document.getElementById('inv-date')?.value || '',
+            total,
+            tax
+        );
+        saveCache();
+    }
+ 
+
+    function generateZatcaQR(seller, vat, date, total, tax) {
+        const time = new Date().toISOString();
+        const tlv = (tag, val) => {
+            const v = new TextEncoder().encode(val);
+            return new Uint8Array([tag, v.length, ...v]);
+        };
+        // دمج التاريخ مع الوقت الحالي لضمان صحة الباركود
+        const fullDate = date + "T" + new Date().toLocaleTimeString('en-GB');
+        
+        const ArrayData = new Uint8Array([
+            ...tlv(1, seller), ...tlv(2, vat), ...tlv(3, fullDate),
+            ...tlv(4, total.toFixed(2)), ...tlv(5, tax.toFixed(2))
+        ]);
+        
+        const b64 = btoa(String.fromCharCode(...ArrayData));
+        document.getElementById('qrcode').innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), { text: b64, width: 80, height: 80, correctLevel : QRCode.CorrectLevel.M });
+    }
+
+    function saveCache() {
+        const items = Array.from(document.querySelectorAll('#itemsBody tr')).map(r => ({
+            d: r.querySelector('.item-d').value,
+            q: r.querySelector('.item-q').value,
+            p: r.querySelector('.item-p').value,
+            t: r.querySelector('.item-total').value
+        }));
+        const data = {
+            compName: document.getElementById('comp-name').innerText,
+            compVat: document.getElementById('comp-vat').innerText,
+            compReg: document.getElementById('comp-reg').innerText,
+            compAddr: document.getElementById('comp-addr').innerText,
+            invDate: document.getElementById('inv-date').value,
+            custName: document.getElementById('cust-name').innerText,
+            custVat: document.getElementById('cust-vat').innerText,
+            custAddr: document.getElementById('cust-addr').innerText,
+            invNo: document.getElementById('inv-no').innerText,
+            invPay: document.getElementById('inv-pay').innerText,
+            logoSrc: document.getElementById('logo-img').src,
+            items: items,
+            discountType: document.getElementById('d-type').value,
+            discountValue: document.getElementById('d-val').value
+        };
+        localStorage.setItem('alwareef_invoice_v4', JSON.stringify(data));
+    }
+
+    function loadCache() {
+        const cache = localStorage.getItem('alwareef_invoice_v4');
+        if(cache) {
+            const d = JSON.parse(cache);
+            document.getElementById('comp-name').innerText = d.compName;
+            document.getElementById('comp-vat').innerText = d.compVat;
+            document.getElementById('comp-reg').innerText = d.compReg;
+            document.getElementById('comp-addr').innerText = d.compAddr;
+            document.getElementById('inv-date').value = d.invDate;
+            document.getElementById('cust-name').innerText = d.custName;
+            document.getElementById('cust-vat').innerText = d.custVat;
+            document.getElementById('cust-addr').innerText = d.custAddr;
+            document.getElementById('inv-no').innerText = d.invNo;
+            document.getElementById('inv-pay').innerText = d.invPay;
+            document.getElementById('logo-img').src = d.logoSrc;
+            document.getElementById('d-type').value = d.discountType;
+            document.getElementById('d-val').value = d.discountValue;
+            d.items.forEach(i => addRow(i.d, i.q, i.p, i.t));
+        } else {
+            // بيانات افتراضية
+            addRow('انبوب 90 ملم 10 بار', 300, 9);
+            addRow('انبوب 63 ملم 10 بار', 200, 4.5);
+        }
+    }
+
+    function resetInvoice() {
+        if(confirm("بدء فاتورة جديدة؟")) { localStorage.removeItem('alwareef_invoice_v4'); location.reload(); }
+    }
+
+    // حفظ البيانات عند أي تعديل
+    function autoSave() {
+        document.addEventListener('input', (e) => {
+            if(e.target.hasAttribute('contenteditable') || e.target.tagName === 'INPUT') {
+                saveCache();
+            }
+        });
+    }
+
+    // تفعيل الحفظ التلقائي عند تحميل الصفحة
+    window.onload = () => {
+        loadCache();
+        autoSave();
+    };
+</script>
+</body>
+</html>
