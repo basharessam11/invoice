@@ -80,7 +80,8 @@
             <div class="small text-muted">
                 <span id="comp-addr" contenteditable="true" class="editable">الرياض - المدينة الصناعية الثانية - 14334</span>
             </div>
-            <img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="Company Logo" id="logo-img" class="editable" contenteditable="true" onblur="updateLogoSrc(this)" style="height: 60px; cursor: pointer;">
+            <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+<img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="Company Logo" id="logo-img" onclick="document.getElementById('logo-upload').click()" style="height: 60px; cursor: pointer;" title="اضغط لتغيير الشعار">
         </div>
     </div>
 
@@ -176,6 +177,18 @@
         const logoImg = document.getElementById('logo-img');
         logoImg.src = input.value;
         saveCache();
+    }
+
+    function handleLogoUpload(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const logoImg = document.getElementById('logo-img');
+                logoImg.src = e.target.result;
+                saveCache();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     function addRow(d='', q=1, p=0, total=0) {
