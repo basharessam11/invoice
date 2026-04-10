@@ -302,19 +302,19 @@
     }
 
     function updateAll() {
-        let sub = 0; let tax = 0; let discount = 0;
+        let sub = 0; let tax = 0; let totalWithVat = 0; let discount = 0;
         document.querySelectorAll('#itemsBody tr').forEach(row => {
             const q = parseFloat(row.querySelector('.item-q')?.value) || 0;
             const p = parseFloat(row.querySelector('.item-p')?.value) || 0;
             const lineSub = q * p;
-            const lineVat = lineSub * 0.15;
-            const lineTotal = lineSub + lineVat;
+            const lineVat = parseFloat(row.querySelector('.item-vat-val')?.innerText) || 0;
+            const lineTotal = parseFloat(row.querySelector('.item-total')?.value) || 0;
             
             sub += lineSub; 
             tax += lineVat;
+            totalWithVat += lineTotal;
 
             const vatElement = row.querySelector('.item-vat-val');
-            const totalElement = row.querySelector('.item-total');
 
             if (vatElement) vatElement.innerText = lineVat.toFixed(2);
            
@@ -325,10 +325,10 @@
         if (discountType === 'f') {
             discount = Math.max(0, discountValue);
         } else if (discountType === 'p') {
-            discount = Math.max(0, (sub * discountValue) / 100);
+            discount = Math.max(0, (totalWithVat * discountValue) / 100);
         }
 
-        const total = Math.max(0, sub + tax - discount);
+        const total = Math.max(0, totalWithVat - discount);
 
         const subTotalElement = document.getElementById('sub-total');
         const vatTotalElement = document.getElementById('vat-total');
@@ -401,29 +401,55 @@
         const cache = localStorage.getItem('alwareef_invoice_v4');
         if(cache) {
             const d = JSON.parse(cache);
-            document.getElementById('comp-name').innerText = d.compName;
-            document.getElementById('comp-vat').innerText = d.compVat;
-            document.getElementById('comp-reg').innerText = d.compReg;
-            document.getElementById('comp-addr').innerText = d.compAddr;
-            document.getElementById('inv-date').value = d.invDate;
-            document.getElementById('cust-name').innerText = d.custName;
-            document.getElementById('cust-vat').innerText = d.custVat;
-            document.getElementById('cust-addr').innerText = d.custAddr;
-            document.getElementById('inv-no').innerText = d.invNo;
-            document.getElementById('inv-pay').innerText = d.invPay;
-            document.getElementById('logo-img').src = d.logoSrc;
-            document.getElementById('d-type').value = d.discountType;
-            document.getElementById('d-val').value = d.discountValue;
-            d.items.forEach(i => addRow(i.d, i.q, i.p, i.t));
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('comp-name').innerText = d.compName || ' شركة مصنع الوريف للبلاستيك';
+            document.getElementById('comp-vat').innerText = d.compVat || '300056299900003';
+            document.getElementById('comp-reg').innerText = d.compReg || '1010229656';
+            document.getElementById('comp-addr').innerText = d.compAddr || 'الرياض - المدينة الصناعية الثانية - 14334';
+            document.getElementById('inv-date').value = d.invDate || today;
+            document.getElementById('cust-name').innerText = d.custName || ' شركة تصارم للمقاولات';
+            document.getElementById('cust-vat').innerText = d.custVat || '300063658500003';
+            document.getElementById('cust-addr').innerText = d.custAddr || 'الرياض - حي اشبيلية';
+            document.getElementById('inv-no').innerText = d.invNo || '0001';
+            document.getElementById('inv-pay').innerText = d.invPay || 'نقدي / Cash';
+            document.getElementById('logo-img').src = d.logoSrc || 'https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg';
+            document.getElementById('d-type').value = d.discountType || 'f';
+            document.getElementById('d-val').value = d.discountValue || '0';
+            if (d.items && d.items.length > 0) {
+                d.items.forEach(i => addRow(i.d, i.q, i.p, i.t));
+            } else {
+                addRow('', 1, 0);
+            }
         } else {
             // بيانات افتراضية
-            addRow('انبوب 90 ملم 10 بار', 300, 9);
-            addRow('انبوب 63 ملم 10 بار', 200, 4.5);
+            addRow('', 1, 0);
         }
     }
 
     function resetInvoice() {
-        if(confirm("بدء فاتورة جديدة؟")) { localStorage.removeItem('alwareef_invoice_v4'); location.reload(); }
+        if(confirm("بدء فاتورة جديدة؟")) {
+            const cache = localStorage.getItem('alwareef_invoice_v4');
+            if (cache) {
+                const d = JSON.parse(cache);
+                const today = new Date().toISOString().split('T')[0];
+                const preservedData = {
+                    compName: d.compName,
+                    compVat: d.compVat,
+                    compReg: d.compReg,
+                    compAddr: d.compAddr,
+                    logoSrc: d.logoSrc,
+                    custName: d.custName,
+                    custVat: d.custVat,
+                    custAddr: d.custAddr,
+                    invNo: '0001',
+                    invPay: 'نقدي / Cash',
+                    invDate: today,
+                    items: []
+                };
+                localStorage.setItem('alwareef_invoice_v4', JSON.stringify(preservedData));
+            }
+            location.reload();
+        }
     }
 
     // حفظ البيانات عند أي تعديل
