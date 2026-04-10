@@ -280,7 +280,7 @@
         }
     }
 
-    function addRow(d='', q=1, p=0, total=0) {
+    function addRow(d='', q=1, p=0, total=0, vat=0) {
         const tbody = document.getElementById('itemsBody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -288,7 +288,7 @@
             <td><input type="text" class="form-control-sm w-100 item-d" value="${d}" placeholder="اسم الصنف"></td>
             <td><input type="number" step="any" class="form-control-sm w-100 text-center item-q" value="${q}" oninput="calcByQty(this)"></td>
             <td><input type="number" step="any" class="form-control-sm w-100 text-center item-p" value="${parseFloat(p).toFixed(2)}" oninput="calcByQty(this)"></td>
-            <td class="text-center item-vat-val">0.00</td>
+            <td class="text-center item-vat-val">${parseFloat(vat).toFixed(2)}</td>
             <td><input type="number" step="any" class="form-control-sm w-100 text-center item-total editable-total" value="${parseFloat(total).toFixed(2)}" oninput="calcByTotal(this)"></td>
             <td class="no-print text-center"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); updateAll()">✕</button></td>
         `;
@@ -465,7 +465,8 @@
             d: r.querySelector('.item-d').value,
             q: r.querySelector('.item-q').value,
             p: r.querySelector('.item-p').value,
-            t: r.querySelector('.item-total').value
+            t: r.querySelector('.item-total').value,
+            v: r.querySelector('.item-vat-val').innerText
         }));
         const data = {
             compName: document.getElementById('comp-name').innerText,
@@ -505,12 +506,11 @@
             document.getElementById('d-type').value = d.discountType || 'f';
             document.getElementById('d-val').value = d.discountValue || '0';
             if (d.items && d.items.length > 0) {
-                d.items.forEach(i => addRow(i.d, i.q, i.p, i.t));
+                d.items.forEach(i => addRow(i.d, i.q, i.p, i.t, i.v));
             } else {
                 addRow('', 1, 0);
             }
         } else {
-            // بيانات افتراضية
             addRow('', 1, 0);
         }
     }
