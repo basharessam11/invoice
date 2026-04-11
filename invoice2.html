@@ -217,7 +217,7 @@
     <div class="row justify-content-end align-items-end">
         <div class="col-6">
             <div class="p-2 mt-2 mb-2 h-100" style="background: #fff;">
-                 <div id="qrcode" class="d-flex justify-content-center align-items-center" style="height: 100px;">
+                 <div id="qrcode" class="d-flex justify-content-center align-items-center mb-4"  >
                     <!-- QR Code will be generated here -->
                 </div>
             </div>
@@ -287,10 +287,10 @@
         tr.innerHTML = `
             <td class="text-center text-muted small">${tbody.rows.length + 1}</td>
             <td><input type="text" class="form-control-sm w-100 item-d" value="${d}" placeholder="اسم الصنف"></td>
-            <td><input type="number" step="any" class="form-control-sm w-100 text-center item-q" value="${q}" oninput="calcByQty(this)"></td>
-            <td><input type="number" step="any" class="form-control-sm w-100 text-center item-p" value="${parseFloat(p).toFixed(2)}" oninput="calcByQty(this)"></td>
+            <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-q" value="${q}" oninput="calcByQty(this)"></td>
+            <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-p" value="${parseFloat(p).toFixed(2)}" oninput="calcByQty(this)"></td>
             <td class="text-center item-vat-val">${parseFloat(vat).toFixed(2)}</td>
-            <td><input type="number" step="any" class="form-control-sm w-100 text-center item-total editable-total" value="${parseFloat(total).toFixed(2)}" oninput="calcByTotal(this)"></td>
+            <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-total editable-total" value="${parseFloat(total).toFixed(2)}" oninput="calcByTotal(this)"></td>
             <td class="no-print text-center"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); updateAll()">✕</button></td>
         `;
         tbody.appendChild(tr);
@@ -300,7 +300,10 @@
     // 1. الحساب التقليدي (كمية * سعر)
     function calcByQty(input) {
         const row = input.closest('tr');
-        enforceEnglishNumbers(input); // تحويل الأرقام العربية للإنجليزية
+        const stillTyping = enforceEnglishNumbers(input); // تحويل الأرقام العربية للإنجليزية
+        
+        // لو المستخدم لسه بيكتب كسر (انتهى بنقطة)، متكملش الحساب
+        if (stillTyping) return;
         
         const qty = parseFloat(row.querySelector('.item-q').value) || 0;
         const price = parseFloat(row.querySelector('.item-p').value) || 0;
@@ -315,33 +318,31 @@
     }
 
     // تحويل الأرقام العربية إلى إنجليزية
-    function convertArabicToEnglish(arabicNum) {
-        const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-        const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        let str = String(arabicNum);
-        for (let i = 0; i < 10; i++) {
-            str = str.replace(new RegExp(arabicDigits[i], 'g'), englishDigits[i]);
-        }
-        return str;
-    }
+ 
 
     // معالجة إدخال الأرقام العربية
     function enforceEnglishNumbers(input) {
         let value = input.value;
-        value = convertArabicToEnglish(value);
-        
+
+        // متحدثش القيمة لو المستخدم لسه بيكتب كسر (بينتهي بنقطة)
+        if (value.endsWith('.') || value.endsWith(',')) {
+            return true; // true = لسه بيكتب
+        }
+
         // السماح فقط بالأرقام والنقطة - تجنب النقاط المتعددة
         let cleanValue = '';
         let hasDecimal = false;
         for (let char of value) {
             if (char >= '0' && char <= '9') {
                 cleanValue += char;
-            } else if (char === '.' && !hasDecimal) {
-                cleanValue += char;
+            } else if ((char === '.' || char === ',') && !hasDecimal) {
+                cleanValue += '.';
                 hasDecimal = true;
             }
         }
+
         input.value = cleanValue;
+        return false; // false = خلاص خلص
     }
 
     // 2. الحساب العكسي (لو كتبت الإجمالي هو يحسب السعر)
@@ -351,7 +352,7 @@
 
         // تحويل الأرقام العربية للإنجليزية
         let rawValue = input.value;
-        rawValue = convertArabicToEnglish(rawValue);
+        rawValue = rawValue;
         
         // تنظيف القيمة من الأحرف غير المرغوبة
         let cleanValue = '';
@@ -456,7 +457,7 @@
         ]);
         const b64 = btoa(String.fromCharCode(...ArrayData));
         document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: b64, width: 80, height: 80, correctLevel : QRCode.CorrectLevel.M });
+        new QRCode(document.getElementById("qrcode"), { text: b64, width: 150, height: 150, correctLevel : QRCode.CorrectLevel.M });
     }
 
     function saveCache() {
