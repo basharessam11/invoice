@@ -53,7 +53,7 @@
         @media print {
             .no-print { display: none !important; }
             body { background: white; margin: 0; }
-            .invoice-card { box-shadow: none; margin: 0; width: 100%; max-width: none; padding: 10px; }
+            .invoice-card { box-shadow: none; margin: 0; width: 100%; max-width: none; padding: 10mm; }
             .table-items thead th { background: #333 !important; -webkit-print-color-adjust: exact; }
             .data-box { background: #fff !important; }
         }
@@ -135,8 +135,8 @@
 <body>
 
 <!-- Header with author link and action buttons -->
-<div class="container no-print mt-3">
-    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded border shadow-sm mb-3">
+<div class="container no-print mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded border shadow-sm mt-4 mb-4">
         <div class="fw-bold fs-5">
              <a href="https://www.facebook.com/basharessam11" target="_blank" class="footer-link fw-bolder"> © <script>
       document.write(new Date().getFullYear())
@@ -153,17 +153,17 @@
  
 
 <div class="invoice-card" id="invoiceArea">
-    <div class="company-header row align-items-center mb-3">
+    <div class="company-header row align-items-center  ">
         <div class="col-5">
-            <h1 class="main-title mb-0" contenteditable="true" id="comp-name"> شركة مصنع الوريف للبلاستيك</h1>
-            <div class="mt-1 text-muted">
+            <h1 class="main-title mt-4 mb-4" contenteditable="true" id="comp-name"> شركة مصنع الوريف للبلاستيك</h1>
+            <div class="mt-2 mb-2 text-muted">
                 <span id="label-comp-vat" contenteditable="true">الرقم الضريبي:</span> <span id="comp-vat" contenteditable="true" class="fw-bold text-dark editable">300056299900003</span><br>
                 <span id="label-comp-reg" contenteditable="true">السجل التجاري:</span> <span id="comp-reg" contenteditable="true" class="fw-bold text-dark editable">1010229656</span>
             </div>
         </div>
         <div class="col-2 text-center">
-            <h5 class="fw-bold mb-0" id="label-invoice-title" contenteditable="true">فاتورة ضريبية</h5>
-            <div class="badge bg-dark mt-2" id="label-invoice-en" contenteditable="true" style="font-size: 9px;">TAX INVOICE</div>
+            <h5 class="fw-bold mt-4 mb-2" id="label-invoice-title" contenteditable="true">فاتورة ضريبية</h5>
+            <div class="badge bg-dark mt-2 mb-4" id="label-invoice-en" contenteditable="true" style="font-size: 9px;">TAX INVOICE</div>
         </div>
         <div class="col-5 text-end d-flex justify-content-end align-items-center gap-2">
             <div class="small text-muted">
@@ -174,7 +174,7 @@
         </div>
     </div>
 
-    <div class="info-grid">
+    <div class="info-grid mt-4 mb-4">
         <div class="data-box">
             <div class="box-label" id="label-inv-details" contenteditable="true">بيانات الفاتورة (Invoice Details)</div>
             <div class="row g-1">
@@ -193,7 +193,7 @@
         </div>
     </div>
 
-    <table class="table-items w-100 mb-2 table-bordered">
+    <table class="table-items w-100 mt-2 mb-2 table-bordered">
         <thead>
             <tr>
                 <th width="3%" id="th-num" contenteditable="true">#</th>
@@ -207,11 +207,16 @@
         </thead>
         <tbody id="itemsBody"></tbody>
     </table>
-    <button class="btn btn-sm btn-light border no-print w-100 mb-3" onclick="addRow()">+ إضافة صنف جديد (Add Row)</button>
+    <button class="btn btn-sm btn-light border no-print w-100 mt-4 mb-4" onclick="addRow()">+ إضافة صنف جديد (Add Row)</button>
+
+    <div class="data-box mt-4 mb-4" style="min-height: 80px;">
+        <div class="box-label" id="label-notes" contenteditable="true">ملاحظات / Notes:</div>
+        <div id="notes" contenteditable="true" class="text-muted small" style="min-height: 50px;"></div>
+    </div>
 
     <div class="row justify-content-end align-items-end">
         <div class="col-6">
-            <div class="p-2 mb-1 h-100" style="background: #fff;">
+            <div class="p-2 mt-2 mb-2 h-100" style="background: #fff;">
                  <div id="qrcode" class="d-flex justify-content-center align-items-center" style="height: 100px;">
                     <!-- QR Code will be generated here -->
                 </div>
@@ -219,11 +224,11 @@
         </div>
         <div class="col-5">
             <div class="p-2 border rounded bg-dark text-white">
-                <div class="d-flex justify-content-between mb-1">
+                <div class="d-flex justify-content-between mt-4 mb-4">
                     <span id="label-subtotal" contenteditable="true">الإجمالي (غير شامل الضريبة):</span>
                     <span id="sub-total">0.00</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1">
+                <div class="d-flex justify-content-between mt-4 mb-4">
                     <span id="label-vat" contenteditable="true">الضريبة 15%:</span>
                     <span id="vat-total">0.00</span>
                 </div>
@@ -240,7 +245,7 @@
                 </div>
 
             
-                <div class="d-flex justify-content-between fw-bold fs-6 pt-1">
+                <div class="d-flex justify-content-between fw-bold fs-6 mt-4 mb-4">
                     <span id="label-grand-total" contenteditable="true">الإجمالي المستحق:</span>
                     <span id="grand-total">0.00</span>
                 </div>
@@ -499,7 +504,9 @@
             labelSubtotal: document.getElementById('label-subtotal').innerText,
             labelVat: document.getElementById('label-vat').innerText,
             labelDiscount: document.getElementById('label-discount').innerText,
-            labelGrandTotal: document.getElementById('label-grand-total').innerText
+            labelGrandTotal: document.getElementById('label-grand-total').innerText,
+            notes: document.getElementById('notes').innerText,
+            labelNotes: document.getElementById('label-notes').innerText
         };
         localStorage.setItem('alwareef_invoice_v4', JSON.stringify(data));
     }
@@ -545,6 +552,8 @@
             if (d.labelVat) document.getElementById('label-vat').innerText = d.labelVat;
             if (d.labelDiscount) document.getElementById('label-discount').innerText = d.labelDiscount;
             if (d.labelGrandTotal) document.getElementById('label-grand-total').innerText = d.labelGrandTotal;
+            if (d.notes) document.getElementById('notes').innerText = d.notes;
+            if (d.labelNotes) document.getElementById('label-notes').innerText = d.labelNotes;
             if (d.items && d.items.length > 0) {
                 d.items.forEach(i => addRow(i.d, i.q, i.p, i.t, i.v));
             } else {
