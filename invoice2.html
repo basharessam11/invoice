@@ -40,7 +40,7 @@
         /* الجدول المضغوط */
         .table-items thead th { background: #333; color: #fff; border: 1px solid #000; padding: 4px; font-size: 10px; text-align: center; }
         .table-items tbody td { border: 1px solid #ddd; padding: 1px 3px; vertical-align: middle; }
-        .form-control-sm { font-size: 10px; padding: 1px 3px; border: none; background: transparent; }
+        .form-control-sm { font-size: 10px; padding: 1px 3px; border: none;   }
         .form-control-sm:focus { background: #fffde7; border-bottom: 1px solid #ffeb3b; box-shadow: none; border-radius: 2px; }
         
         /* خانة الإجمالي المفتوح */
@@ -157,13 +157,13 @@
         <div class="col-5">
             <h1 class="main-title mb-0" contenteditable="true" id="comp-name"> شركة مصنع الوريف للبلاستيك</h1>
             <div class="mt-1 text-muted">
-                الرقم الضريبي: <span id="comp-vat" contenteditable="true" class="fw-bold text-dark editable">300056299900003</span><br>
-                السجل التجاري: <span id="comp-reg" contenteditable="true" class="fw-bold text-dark editable">1010229656</span>
+                <span id="label-comp-vat" contenteditable="true">الرقم الضريبي:</span> <span id="comp-vat" contenteditable="true" class="fw-bold text-dark editable">300056299900003</span><br>
+                <span id="label-comp-reg" contenteditable="true">السجل التجاري:</span> <span id="comp-reg" contenteditable="true" class="fw-bold text-dark editable">1010229656</span>
             </div>
         </div>
         <div class="col-2 text-center">
-            <h5 class="fw-bold mb-0">فاتورة ضريبية</h5>
-            <div class="badge bg-dark" style="font-size: 9px;">TAX INVOICE</div>
+            <h5 class="fw-bold mb-0" id="label-invoice-title" contenteditable="true">فاتورة ضريبية</h5>
+            <div class="badge bg-dark mt-2" id="label-invoice-en" contenteditable="true" style="font-size: 9px;">TAX INVOICE</div>
         </div>
         <div class="col-5 text-end d-flex justify-content-end align-items-center gap-2">
             <div class="small text-muted">
@@ -176,19 +176,19 @@
 
     <div class="info-grid">
         <div class="data-box">
-            <div class="box-label">بيانات الفاتورة (Invoice Details)</div>
+            <div class="box-label" id="label-inv-details" contenteditable="true">بيانات الفاتورة (Invoice Details)</div>
             <div class="row g-1">
-                <div class="col-4 text-muted">رقم الفاتورة:</div> <div class="col-8 fw-bold" id="inv-no" contenteditable="true">0003-1519</div>
-                <div class="col-4 text-muted">تاريخ الفاتورة:</div> <div class="col-8"><input type="date" id="inv-date" class="form-control-sm w-100 fw-bold" onchange="updateAll()"></div>
-                <div class="col-4 text-muted">طريقة الدفع:</div> <div class="col-8" id="inv-pay" contenteditable="true">نقدي / Cash</div>
+                <div class="col-4 text-muted" id="label-inv-no" contenteditable="true">رقم الفاتورة:</div> <div class="col-8 fw-bold" id="inv-no" contenteditable="true">0003-1519</div>
+                <div class="col-4 text-muted" id="label-inv-date" contenteditable="true">تاريخ الفاتورة:</div> <div class="col-8"><input type="date" id="inv-date" class="form-control-sm w-100 fw-bold" onchange="updateAll()"></div>
+                <div class="col-4 text-muted" id="label-inv-pay" contenteditable="true">طريقة الدفع:</div> <div class="col-8" id="inv-pay" contenteditable="true">نقدي / Cash</div>
             </div>
         </div>
         <div class="data-box">
-            <div class="box-label">بيانات العميل (Customer Details)</div>
+            <div class="box-label" id="label-cust-details" contenteditable="true">بيانات العميل (Customer Details)</div>
             <div class="row g-1">
-                <div class="col-4 text-muted">اسم العميل:</div> <div class="col-8 fw-bold" id="cust-name" contenteditable="true"> شركة تصارم للمقاولات</div>
-                <div class="col-4 text-muted">الرقم الضريبي:</div> <div class="col-8" id="cust-vat" contenteditable="true">300063658500003</div>
-                <div class="col-4 text-muted">العنوان/حي:</div> <div class="col-8" id="cust-addr" contenteditable="true">الرياض - حي اشبيلية</div>
+                <div class="col-4 text-muted" id="label-cust-name" contenteditable="true">اسم العميل:</div> <div class="col-8 fw-bold" id="cust-name" contenteditable="true"> شركة تصارم للمقاولات</div>
+                <div class="col-4 text-muted" id="label-cust-vat" contenteditable="true">الرقم الضريبي:</div> <div class="col-8" id="cust-vat" contenteditable="true">300063658500003</div>
+                <div class="col-4 text-muted" id="label-cust-addr" contenteditable="true">العنوان/حي:</div> <div class="col-8" id="cust-addr" contenteditable="true">الرياض - حي اشبيلية</div>
             </div>
         </div>
     </div>
@@ -196,12 +196,12 @@
     <table class="table-items w-100 mb-2 table-bordered">
         <thead>
             <tr>
-                <th width="3%">#</th>
-                <th width="40%">اسم الصنف / الوصف (Item Description)</th>
-                <th width="10%">الكمية</th>
-                <th width="12%">سعر الوحدة</th>
-                <th width="10%">الضريبة 15%</th>
-                <th width="15%">الإجمالي (شامل)</th>
+                <th width="3%" id="th-num" contenteditable="true">#</th>
+                <th width="40%" id="th-item" contenteditable="true">اسم الصنف / الوصف (Item Description)</th>
+                <th width="10%" id="th-qty" contenteditable="true">الكمية</th>
+                <th width="12%" id="th-price" contenteditable="true">سعر الوحدة</th>
+                <th width="10%" id="th-vat" contenteditable="true">الضريبة 15%</th>
+                <th width="15%" id="th-total" contenteditable="true">الإجمالي (شامل)</th>
                 <th width="2%" class="no-print"></th>
             </tr>
         </thead>
@@ -220,17 +220,17 @@
         <div class="col-5">
             <div class="p-2 border rounded bg-dark text-white">
                 <div class="d-flex justify-content-between mb-1">
-                    <span>الإجمالي (غير شامل الضريبة):</span>
+                    <span id="label-subtotal" contenteditable="true">الإجمالي (غير شامل الضريبة):</span>
                     <span id="sub-total">0.00</span>
                 </div>
                 <div class="d-flex justify-content-between mb-1">
-                    <span>الضريبة 15%:</span>
+                    <span id="label-vat" contenteditable="true">الضريبة 15%:</span>
                     <span id="vat-total">0.00</span>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-1 fw-bold small">
-                        <span>الخصم</span>
+                        <span id="label-discount" contenteditable="true">الخصم</span>
                         <select id="d-type" style="height: 25px;" onchange="updateAll()" class="form-select form-select-sm w-auto">
                             <option value="f">ريال</option>
                             <option value="p">%</option>
@@ -239,13 +239,9 @@
                     <input type="text" id="d-val" style="height: 25px;" value="0" class="form-control form-control-sm w-25 text-end" oninput="enforceEnglishNumbers(this); updateAll()">
                 </div>
 
-                <div class="d-flex justify-content-between mb-1 text-warning">
-                    <span>قيمة الخصم:</span>
-                    <span id="discount-total">0.00</span>
-                </div>
-          
+            
                 <div class="d-flex justify-content-between fw-bold fs-6 pt-1">
-                    <span>الإجمالي المستحق:</span>
+                    <span id="label-grand-total" contenteditable="true">الإجمالي المستحق:</span>
                     <span id="grand-total">0.00</span>
                 </div>
             </div>
@@ -421,12 +417,11 @@
 
         const subTotalElement = document.getElementById('sub-total');
         const vatTotalElement = document.getElementById('vat-total');
-        const discountTotalElement = document.getElementById('discount-total');
-        const grandTotalElement = document.getElementById('grand-total');
+         const grandTotalElement = document.getElementById('grand-total');
 
         if (subTotalElement) subTotalElement.innerText = sub.toFixed(2);
         if (vatTotalElement) vatTotalElement.innerText = tax.toFixed(2);
-        if (discountTotalElement) discountTotalElement.innerText = discount.toFixed(2);
+     
         if (grandTotalElement) grandTotalElement.innerText = total.toFixed(2);
 
         // تحديث الباركود بناءً على البيانات الحالية
@@ -454,7 +449,6 @@
             ...tlv(1, seller), ...tlv(2, vat), ...tlv(3, fullDate),
             ...tlv(4, total.toFixed(2)), ...tlv(5, tax.toFixed(2))
         ]);
-        
         const b64 = btoa(String.fromCharCode(...ArrayData));
         document.getElementById('qrcode').innerHTML = "";
         new QRCode(document.getElementById("qrcode"), { text: b64, width: 80, height: 80, correctLevel : QRCode.CorrectLevel.M });
@@ -482,7 +476,30 @@
             logoSrc: document.getElementById('logo-img').src,
             items: items,
             discountType: document.getElementById('d-type').value,
-            discountValue: document.getElementById('d-val').value
+            discountValue: document.getElementById('d-val').value,
+            // Labels
+            labelCompVat: document.getElementById('label-comp-vat').innerText,
+            labelCompReg: document.getElementById('label-comp-reg').innerText,
+            labelInvoiceTitle: document.getElementById('label-invoice-title').innerText,
+            labelInvoiceEn: document.getElementById('label-invoice-en').innerText,
+            labelInvDetails: document.getElementById('label-inv-details').innerText,
+            labelInvNo: document.getElementById('label-inv-no').innerText,
+            labelInvDate: document.getElementById('label-inv-date').innerText,
+            labelInvPay: document.getElementById('label-inv-pay').innerText,
+            labelCustDetails: document.getElementById('label-cust-details').innerText,
+            labelCustName: document.getElementById('label-cust-name').innerText,
+            labelCustVat: document.getElementById('label-cust-vat').innerText,
+            labelCustAddr: document.getElementById('label-cust-addr').innerText,
+            thNum: document.getElementById('th-num').innerText,
+            thItem: document.getElementById('th-item').innerText,
+            thQty: document.getElementById('th-qty').innerText,
+            thPrice: document.getElementById('th-price').innerText,
+            thVat: document.getElementById('th-vat').innerText,
+            thTotal: document.getElementById('th-total').innerText,
+            labelSubtotal: document.getElementById('label-subtotal').innerText,
+            labelVat: document.getElementById('label-vat').innerText,
+            labelDiscount: document.getElementById('label-discount').innerText,
+            labelGrandTotal: document.getElementById('label-grand-total').innerText
         };
         localStorage.setItem('alwareef_invoice_v4', JSON.stringify(data));
     }
@@ -505,6 +522,29 @@
             document.getElementById('logo-img').src = d.logoSrc || 'https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg';
             document.getElementById('d-type').value = d.discountType || 'f';
             document.getElementById('d-val').value = d.discountValue || '0';
+            // Labels
+            if (d.labelCompVat) document.getElementById('label-comp-vat').innerText = d.labelCompVat;
+            if (d.labelCompReg) document.getElementById('label-comp-reg').innerText = d.labelCompReg;
+            if (d.labelInvoiceTitle) document.getElementById('label-invoice-title').innerText = d.labelInvoiceTitle;
+            if (d.labelInvoiceEn) document.getElementById('label-invoice-en').innerText = d.labelInvoiceEn;
+            if (d.labelInvDetails) document.getElementById('label-inv-details').innerText = d.labelInvDetails;
+            if (d.labelInvNo) document.getElementById('label-inv-no').innerText = d.labelInvNo;
+            if (d.labelInvDate) document.getElementById('label-inv-date').innerText = d.labelInvDate;
+            if (d.labelInvPay) document.getElementById('label-inv-pay').innerText = d.labelInvPay;
+            if (d.labelCustDetails) document.getElementById('label-cust-details').innerText = d.labelCustDetails;
+            if (d.labelCustName) document.getElementById('label-cust-name').innerText = d.labelCustName;
+            if (d.labelCustVat) document.getElementById('label-cust-vat').innerText = d.labelCustVat;
+            if (d.labelCustAddr) document.getElementById('label-cust-addr').innerText = d.labelCustAddr;
+            if (d.thNum) document.getElementById('th-num').innerText = d.thNum;
+            if (d.thItem) document.getElementById('th-item').innerText = d.thItem;
+            if (d.thQty) document.getElementById('th-qty').innerText = d.thQty;
+            if (d.thPrice) document.getElementById('th-price').innerText = d.thPrice;
+            if (d.thVat) document.getElementById('th-vat').innerText = d.thVat;
+            if (d.thTotal) document.getElementById('th-total').innerText = d.thTotal;
+            if (d.labelSubtotal) document.getElementById('label-subtotal').innerText = d.labelSubtotal;
+            if (d.labelVat) document.getElementById('label-vat').innerText = d.labelVat;
+            if (d.labelDiscount) document.getElementById('label-discount').innerText = d.labelDiscount;
+            if (d.labelGrandTotal) document.getElementById('label-grand-total').innerText = d.labelGrandTotal;
             if (d.items && d.items.length > 0) {
                 d.items.forEach(i => addRow(i.d, i.q, i.p, i.t, i.v));
             } else {
