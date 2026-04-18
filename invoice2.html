@@ -138,14 +138,15 @@
 <div class="container no-print mt-4 mb-4">
     <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded border shadow-sm mt-4 mb-4">
         <div class="fw-bold fs-5">
-             <a href="https://www.facebook.com/basharessam11" target="_blank" class="footer-link fw-bolder"> © <script>
+             <a href="https://www.facebook.com/basharessam11" target="_blank" class="footer-link fw-bolder"> &copy; <script>
       document.write(new Date().getFullYear())
-      </script>  ❤️ made with  by  bashar essam </a>
+      </script>  made with  by  bashar essam </a>
         </div>
         <div class="d-flex gap-2">
             <button onclick="exportToPDF()" class="btn btn-sm px-3" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 8px;">تصدير PDF</button>
+            <button onclick="printReceipt()" class="btn btn-sm px-3" style="background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 8px;">طباعة سند القبض</button>
             <button onclick="resetInvoice()" class="btn btn-sm px-3" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 8px;">فاتورة جديدة</button>
-            <button onclick="window.print()" class="btn btn-sm px-4 text-white" style="background-color: #0f172a; border-radius: 8px;">طباعة</button>
+            <button onclick="printInvoice()" class="btn btn-sm px-4 text-white" style="background-color: #0f172a; border-radius: 8px;">طباعة</button>
         </div>
     </div>
 </div>
@@ -256,6 +257,70 @@
 
     <div class="footer-section">
         
+    </div>
+</div>
+
+<!-- سند القبض -->
+<div class="invoice-card mt-5" id="receiptArea">
+    <div class="company-header row align-items-center">
+        <div class="col-5">
+            <h1 class="main-title mt-4 mb-4" id="receipt-comp-name"> شركة مصنع الوريف للبلاستيك</h1>
+            <div class="mt-2 mb-2 text-muted">
+                <span id="receipt-label-comp-vat">الرقم الضريبي:</span> <span id="receipt-comp-vat" class="fw-bold text-dark">300056299900003</span><br>
+                <span id="receipt-label-comp-reg">السجل التجاري:</span> <span id="receipt-comp-reg" class="fw-bold text-dark">1010229656</span>
+            </div>
+        </div>
+        <div class="col-2 text-center">
+            <h5 class="fw-bold mt-4 mb-2">سند قبض</h5>
+            <div class="badge bg-dark mt-2 mb-4" style="font-size: 9px;">RECEIPT</div>
+        </div>
+        <div class="col-5 text-end d-flex justify-content-end align-items-center gap-2">
+            <div class="small text-muted">
+                <span id="receipt-comp-addr">الرياض - المدينة الصناعية الثانية - 14334</span>
+            </div>
+            <img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="Company Logo" id="receipt-logo-img" style="height: 90px;">
+        </div>
+    </div>
+
+    <div class="info-grid mt-4 mb-4">
+        <div class="data-box">
+            <div class="box-label">بيانات السند (Receipt Details)</div>
+            <div class="row g-1">
+                <div class="col-4 text-muted">رقم الفاتورة:</div> <div class="col-8 fw-bold" id="receipt-inv-no">0003-1519</div>
+                <div class="col-4 text-muted">تاريخ الفاتورة:</div> <div class="col-8" id="receipt-inv-date"></div>
+                <div class="col-4 text-muted">طريقة الدفع:</div> <div class="col-8" id="receipt-inv-pay">نقدي / Cash</div>
+            </div>
+        </div>
+        <div class="data-box">
+            <div class="box-label">بيانات العميل (Customer Details)</div>
+            <div class="row g-1">
+                <div class="col-4 text-muted">اسم العميل:</div> <div class="col-8 fw-bold" id="receipt-cust-name"> شركة تصارم للمقاولات</div>
+                <div class="col-4 text-muted">الرقم الضريبي:</div> <div class="col-8" id="receipt-cust-vat">300063658500003</div>
+                <div class="col-4 text-muted">العنوان/حي:</div> <div class="col-8" id="receipt-cust-addr">الرياض - حي اشبيلية</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-2 border rounded bg-dark text-white">
+        <div class="d-flex justify-content-between mt-4 mb-4">
+            <span>الإجمالي (غير شامل الضريبة):</span>
+            <span id="receipt-sub-total">0.00</span>
+        </div>
+        <div class="d-flex justify-content-between mt-4 mb-4">
+            <span>الضريبة 15%:</span>
+            <span id="receipt-vat-total">0.00</span>
+        </div>
+        <div class="d-flex justify-content-between fw-bold fs-6 mt-4 mb-4">
+            <span>الإجمالي المستحق:</span>
+            <span id="receipt-grand-total">0.00</span>
+        </div>
+    </div>
+
+    <div class="mt-4 mb-4">
+        <div class="box-label">توقيع العميل (Customer Signature)</div>
+        <div style="height: 80px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999;">
+            _________________________
+        </div>
     </div>
 </div>
 
@@ -438,6 +503,9 @@
             total,
             tax
         );
+        
+        // تحديث سند القبض
+        updateReceipt();
         saveCache();
     }
  
@@ -458,6 +526,48 @@
         const b64 = btoa(String.fromCharCode(...ArrayData));
         document.getElementById('qrcode').innerHTML = "";
         new QRCode(document.getElementById("qrcode"), { text: b64, width: 150, height: 150, correctLevel : QRCode.CorrectLevel.M });
+    }
+
+    function updateReceipt() {
+        // تحديث بيانات الشركة في سند القبض
+        const receiptCompName = document.getElementById('receipt-comp-name');
+        const receiptCompVat = document.getElementById('receipt-comp-vat');
+        const receiptCompReg = document.getElementById('receipt-comp-reg');
+        const receiptCompAddr = document.getElementById('receipt-comp-addr');
+        const receiptLogoImg = document.getElementById('receipt-logo-img');
+        
+        if (receiptCompName) receiptCompName.innerText = document.getElementById('comp-name').innerText;
+        if (receiptCompVat) receiptCompVat.innerText = document.getElementById('comp-vat').innerText;
+        if (receiptCompReg) receiptCompReg.innerText = document.getElementById('comp-reg').innerText;
+        if (receiptCompAddr) receiptCompAddr.innerText = document.getElementById('comp-addr').innerText;
+        if (receiptLogoImg) receiptLogoImg.src = document.getElementById('logo-img').src;
+        
+        // تحديث بيانات الفاتورة في سند القبض
+        const receiptInvNo = document.getElementById('receipt-inv-no');
+        const receiptInvDate = document.getElementById('receipt-inv-date');
+        const receiptInvPay = document.getElementById('receipt-inv-pay');
+        
+        if (receiptInvNo) receiptInvNo.innerText = document.getElementById('inv-no').innerText;
+        if (receiptInvDate) receiptInvDate.innerText = document.getElementById('inv-date').value;
+        if (receiptInvPay) receiptInvPay.innerText = document.getElementById('inv-pay').innerText;
+        
+        // تحديث بيانات العميل في سند القبض
+        const receiptCustName = document.getElementById('receipt-cust-name');
+        const receiptCustVat = document.getElementById('receipt-cust-vat');
+        const receiptCustAddr = document.getElementById('receipt-cust-addr');
+        
+        if (receiptCustName) receiptCustName.innerText = document.getElementById('cust-name').innerText;
+        if (receiptCustVat) receiptCustVat.innerText = document.getElementById('cust-vat').innerText;
+        if (receiptCustAddr) receiptCustAddr.innerText = document.getElementById('cust-addr').innerText;
+        
+        // تحديث الإجماليات في سند القبض
+        const receiptSubTotal = document.getElementById('receipt-sub-total');
+        const receiptVatTotal = document.getElementById('receipt-vat-total');
+        const receiptGrandTotal = document.getElementById('receipt-grand-total');
+        
+        if (receiptSubTotal) receiptSubTotal.innerText = document.getElementById('sub-total').innerText;
+        if (receiptVatTotal) receiptVatTotal.innerText = document.getElementById('vat-total').innerText;
+        if (receiptGrandTotal) receiptGrandTotal.innerText = document.getElementById('grand-total').innerText;
     }
 
     function saveCache() {
@@ -595,16 +705,42 @@
     function autoSave() {
         document.addEventListener('input', (e) => {
             if(e.target.hasAttribute('contenteditable') || e.target.tagName === 'INPUT') {
+                updateAll();
                 saveCache();
             }
         });
     }
+
+
+    
 
     // تفعيل الحفظ التلقائي عند تحميل الصفحة
     window.onload = () => {
         loadCache();
         autoSave();
     };
+
+   function printReceipt() {
+    let content = document.getElementById('receiptArea').innerHTML;
+    let original = document.body.innerHTML;
+
+    document.body.innerHTML = content;
+    window.print();
+    document.body.innerHTML = original;
+
+    location.reload();
+}
+
+  function printInvoice() {
+    let content = document.getElementById('invoiceArea').innerHTML;
+    let original = document.body.innerHTML;
+
+    document.body.innerHTML = content;
+    window.print();
+    document.body.innerHTML = original;
+
+    location.reload();
+}
 </script>
 </body>
 </html>
