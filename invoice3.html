@@ -74,6 +74,14 @@
             outline: none;
             box-shadow: none; 
         }
+
+        /* تنسيق مخصص لحقول النصوص المتعددة الاسطر */
+        textarea.form-control-sm {
+            resize: none;
+            overflow: hidden;
+            font-family: 'Cairo', sans-serif;
+            display: block;
+        }
         
         .totals-table {
             width: 100%;
@@ -404,6 +412,11 @@
 </div>
 
 <script>
+    function autoResizeTextarea(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
     function handleLogoUpload(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -425,11 +438,15 @@
             <td class="text-center item-sub-val fw-bold">${parseFloat(sub).toFixed(2)}</td>
             <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-q" value="${q}" oninput="calcByQty(this)"></td>
             <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-p" value="${parseFloat(p).toFixed(2)}" oninput="calcByQty(this)"></td>
-            <td><input type="text" class="form-control-sm w-100 item-d text-end" value="${d}" placeholder="الوصف"></td>
-            <td><input type="text" class="form-control-sm w-100 item-text-id text-center fw-bold" value="${itemText}" placeholder="البند (نص)"></td>
+            <td><textarea class="form-control-sm w-100 item-d text-start" rows="1" placeholder="الوصف" oninput="autoResizeTextarea(this); updateAll()">${d}</textarea></td>
+            <td><textarea class="form-control-sm w-100 item-text-id text-center fw-bold" rows="1" placeholder="البند (نص)" oninput="autoResizeTextarea(this); updateAll()">${itemText}</textarea></td>
             <td class="no-print text-center"><button class="btn btn-sm text-danger p-0" onclick="this.closest('tr').remove(); updateAll()">✕</button></td>
         `;
         tbody.appendChild(tr);
+        
+        // ضبط الارتفاع تلقائياً للعناصر المضافة حديثاً بناءً على النصوص المحملة فيها
+        tr.querySelectorAll('textarea').forEach(autoResizeTextarea);
+        
         updateAll();
     }
 
@@ -602,7 +619,7 @@
     window.onload = () => {
         loadCache();
         document.addEventListener('input', (e) => {
-            if(e.target.hasAttribute('contenteditable') || e.target.tagName === 'INPUT') {
+            if(e.target.hasAttribute('contenteditable') || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
                 updateAll();
             }
         });
