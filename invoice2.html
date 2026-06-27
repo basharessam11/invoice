@@ -1,66 +1,124 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فاتورة ضريبية</title>
+    <title>فاتورة ضريبية وسند قبض</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
         
         body { 
             font-family: 'Cairo', sans-serif; 
             background-color: #f8f9fa; 
-            font-size: 11px; /* خط مضغوط للمنتجات */
+            font-size: 11px; 
             color: #000;
         }
         
         .invoice-card {
             background: #fff;
-            max-width: 210mm; /* عرض A4 */
+            max-width: 210mm;
             margin: 10px auto;
-            padding: 20px;
+            padding: 25px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             position: relative;
+            page-break-after: always; /* فصل الصفحات عند الطباعة */
         }
 
-        /* هيدر المصانع */
-        .company-header { border-bottom: 2px solid #333; padding-bottom: 8px; margin-bottom: 10px; }
-        .main-title { font-size: 16px; font-weight: 900;   }
+        .top-divider {
+            border-top: 1.5px solid #000;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        .main-title { font-size: 18px; font-weight: bold; line-height: 1.2; }
+        .sub-title-en { font-size: 14px; font-weight: bold; color: #333; }
         
-        /* صناديق البيانات */
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .data-box { border: 1px solid #ddd; padding: 6px; border-radius: 4px; background: #fafafa; }
-        .box-label { font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 4px; color: #0d6efd; font-size: 10px; }
+        .meta-section {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .table-items {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+        .table-items th { 
+            background: #f2f2f2; 
+            color: #000; 
+            border: 1px solid #000; 
+            padding: 6px 4px; 
+            font-size: 10px; 
+            text-align: center;
+            font-weight: 600;
+        }
+        .table-items td { 
+            border: 1px solid #000; 
+            padding: 4px; 
+            vertical-align: middle; 
+        }
         
-        /* الجدول المضغوط */
-        .table-items thead th { background: #333; color: #fff; border: 1px solid #000; padding: 4px; font-size: 10px; text-align: center; }
-        .table-items tbody td { border: 1px solid #ddd; padding: 1px 3px; vertical-align: middle; }
-        .form-control-sm { font-size: 10px; padding: 1px 3px; border: none;   }
-        .form-control-sm:focus { background: #fffde7; border-bottom: 1px solid #ffeb3b; box-shadow: none; border-radius: 2px; }
+        .form-control-sm { 
+            font-size: 11px; 
+            padding: 1px 3px; 
+            border: none; 
+            background: transparent;
+        }
+        .form-control-sm:focus { 
+            background: #fffde7; 
+            outline: none;
+            box-shadow: none; 
+        }
         
-        /* خانة الإجمالي المفتوح */
-        .editable-total { font-weight: bold; color: #157347; }
-        
-        /* منطقة التواقيع والباركود */
-        .footer-section { margin-top: 25px; border-top: 1px solid #eee; pt-3: ; display: flex; justify-content: space-between; align-items: end; }
-        .qr-wrapper { width: 85px; height: 85px; border: 1px solid #ddd; padding: 5px; background: #fff; margin-right: auto; }
+        .totals-table {
+            width: 100%;
+            margin-top: 5px;
+            border-collapse: collapse;
+        }
+        .totals-table td {
+            padding: 4px 8px;
+            border: 1px solid #000;
+            font-size: 11px;
+        }
+        .totals-label {
+            background-color: #f9f9f9;
+            font-weight: bold;
+            text-align: center;
+            width: 55%;
+        }
+        .totals-value {
+            text-align: center;
+            width: 45%;
+            font-weight: bold;
+        }
+
+        .handwritten-simulation {
+            font-size: 26px;
+            color: #444;
+            opacity: 0.7;
+            text-align: center;
+            margin-top: 15px;
+        }
 
         @media print {
             .no-print { display: none !important; }
             body { background: white; margin: 0; }
-            .invoice-card { box-shadow: none; margin: 0; width: 100%; max-width: none; padding: 10mm; }
-            .table-items thead th { background: #333 !important; -webkit-print-color-adjust: exact; }
-            .data-box { background: #fff !important; }
+            .invoice-card { box-shadow: none; margin: 0; width: 100%; max-width: none; padding: 0mm; }
+            .table-items th, .totals-label { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            
+            /* التحكم في إخفاء الأجزاء بناء على نمط الطباعة المحدد */
+            body.print-invoice-only #receiptArea { display: none !important; }
+            body.print-receipt-only #invoiceArea { display: none !important; }
         }
     </style>
     <script>
+        // دالة تصدير الـ PDF المحسنة لإنتاج صفحات متعددة بجودة عالية للفاتورة والسند معاً
         function exportToPDF() {
-            // التحقق من وجود المكتبات
             if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
                 alert('جاري تحميل مكتبات PDF... برجاء الانتظار ثواني ثم المحاولة مرة أخرى.');
                 return;
@@ -68,308 +126,316 @@
             
             try {
                 const { jsPDF } = window.jspdf;
-                const element = document.querySelector('.invoice-card');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
                 
-                // إخفاء العناصر غير المطلوبة في PDF
+                const invoiceEl = document.getElementById('invoiceArea');
+                const receiptEl = document.getElementById('receiptArea');
                 const noPrintElements = document.querySelectorAll('.no-print');
+                
+                // إخفاء أزرار التحكم مؤقتاً لضمان نظافة التصميم المستخرج
                 noPrintElements.forEach(el => el.style.display = 'none');
                 
-                html2canvas(element, {
-                    scale: 3,
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: true,
-                    width: element.scrollWidth,
-                    height: element.scrollHeight,
-                    windowWidth: element.scrollWidth,
-                    windowHeight: element.scrollHeight
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png', 1.0);
-                    const pdf = new jsPDF('p', 'mm', 'a4');
+                const opt = { scale: 2.5, useCORS: true, logging: false, backgroundColor: '#ffffff' };
+                
+                // إلتقاط الفاتورة وحقنها بالصفحة الأولى
+                html2canvas(invoiceEl, opt).then(canvas1 => {
+                    const imgData1 = canvas1.toDataURL('image/png', 1.0);
+                    const imgWidth = pdfWidth - 10;
+                    const imgHeight1 = (canvas1.height * imgWidth) / canvas1.width;
                     
-                    // حساب الأبعاد بشكل دقيق
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const imgWidth = pdfWidth - 10; // هوامش 5مم من كل جانب
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    pdf.addImage(imgData1, 'PNG', 5, 5, imgWidth, imgHeight1);
                     
-                    let heightLeft = imgHeight;
-                    let position = 5; // هامش علوي 5مم
-
-                    // إضافة الصورة الأولى
-                    pdf.addImage(imgData, 'PNG', 5, position, imgWidth, imgHeight);
-                    heightLeft -= (pdfHeight - 10);
-
-                    // إضافة صفحات إضافية إذا لزم الأمر
-                    while (heightLeft > 0) {
-                        position = -heightLeft + 5;
-                        pdf.addPage();
-                        pdf.addImage(imgData, 'PNG', 5, position, imgWidth, imgHeight);
-                        heightLeft -= pdfHeight;
-                    }
-
-                    pdf.save(`فاتورة_${document.getElementById('inv-no').innerText.replace('#', '')}.pdf`);
+                    // إنشاء صفحة ثانية وإلتقاط السند بداخلها لضمان عدم حدوث اقتصاص
+                    pdf.addPage();
                     
-                    // إعادة عرض العناصر المخفية
-                    noPrintElements.forEach(el => el.style.display = '');
+                    html2canvas(receiptEl, opt).then(canvas2 => {
+                        const imgData2 = canvas2.toDataURL('image/png', 1.0);
+                        const imgHeight2 = (canvas2.height * imgWidth) / canvas2.width;
+                        
+                        pdf.addImage(imgData2, 'PNG', 5, 5, imgWidth, imgHeight2);
+                        
+                        const invNumber = document.getElementById('inv-no').innerText.trim();
+                        pdf.save(`فاتورة_وسند_رقم_${invNumber}.pdf`);
+                        
+                        noPrintElements.forEach(el => el.style.display = '');
+                    });
                 }).catch(error => {
-                    console.error('خطأ في تصدير PDF:', error);
-                    alert('حدث خطأ أثناء تصدير PDF. برجاء المحاولة مرة أخرى.');
-                    // إعادة عرض العناصر في حالة الخطأ
                     noPrintElements.forEach(el => el.style.display = '');
                 });
             } catch (error) {
-                console.error('خطأ في مكتبات PDF:', error);
-                alert('مكتبات PDF جاري التحميل... برجاء الانتظار ثم المحاولة مرة أخرى.');
+                alert('حدث خطأ أثناء التصدير، يرجى إعادة المحاولة.');
             }
         }
 
+        // دالة الفاتورة الجديدة التي تصفر عناصر جدول الأصناف والماليات فقط دون المساس ببيانات الشركة والعميل
         function resetInvoice() {
-            if(confirm("مسح كل البيانات والبدء من جديد؟")) { 
-                localStorage.removeItem('bashar_invoice_data'); 
-                location.reload(); 
+            if(confirm("مسح عناصر الجدول المالي والبدء من جديد؟ (سيتم الحفاظ على بيانات الشركة والعميل)")) { 
+                
+                // تصفير رقم الفاتورة وتحديث التاريخ لليوم الحالي
+                document.getElementById('inv-no').innerText = '';
+                document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+                
+                // تصفير الملاحظات ومبلغ السند المدفوع
+                document.getElementById('notes').innerText = '';
+                document.getElementById('paid-amount').innerText = '0.00';
+                
+                // مسح أصناف الجدول وإضافة سطر واحد فارغ فقط
+                document.getElementById('itemsBody').innerHTML = '';
+                addRow('', '', 1, 0, 0, 0, 0);
+                
+                // تحديث الحسابات الشاملة وتخزين الكاش
+                updateAll();
             }
+        }
+
+        // دالة طباعة الفاتورة فقط
+        function printInvoiceOnly() {
+            document.body.classList.add('print-invoice-only');
+            document.body.classList.remove('print-receipt-only');
+            window.print();
+        }
+
+        // دالة طباعة السند فقط
+        function printReceiptOnly() {
+            document.body.classList.add('print-receipt-only');
+            document.body.classList.remove('print-invoice-only');
+            window.print();
+        }
+
+        // دالة طباعة الكل
+        function printAll() {
+            document.body.classList.remove('print-invoice-only');
+            document.body.classList.remove('print-receipt-only');
+            window.print();
         }
     </script>
 </head>
 <body>
 
-<!-- Header with author link and action buttons -->
+<!-- لوحة التحكم العلوية -->
 <div class="container no-print mt-4 mb-4">
-    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded border shadow-sm mt-4 mb-4">
-        <div class="fw-bold fs-5">
-             <a href="https://www.facebook.com/basharessam11" target="_blank" class="footer-link fw-bolder"> &copy; <script>
-      document.write(new Date().getFullYear())
-      </script>  made with  by  bashar essam </a>
-        </div>
-        <div class="d-flex gap-2">
-            <button onclick="exportToPDF()" class="btn btn-sm px-3" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 8px;">تصدير PDF</button>
-            <button onclick="printReceipt()" class="btn btn-sm px-3" style="background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; border-radius: 8px;">طباعة سند القبض</button>
+    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded border shadow-sm">
+        <div class="fw-bold fs-5">نظام الفواتير وسندات القبض المتكامل</div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button onclick="exportToPDF()" class="btn btn-sm px-3" style="background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; border-radius: 8px;">تصدير الفاتورة والسند PDF 📥</button>
             <button onclick="resetInvoice()" class="btn btn-sm px-3" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; border-radius: 8px;">فاتورة جديدة</button>
-            <button onclick="printInvoice()" class="btn btn-sm px-4 text-white" style="background-color: #0f172a; border-radius: 8px;">طباعة</button>
+            <button onclick="printInvoiceOnly()" class="btn btn-sm px-3 text-white" style="background-color: #0284c7; border-radius: 8px;">طباعة الفاتورة 📄</button>
+            <button onclick="printReceiptOnly()" class="btn btn-sm px-3 text-white" style="background-color: #16a34a; border-radius: 8px;">طباعة السند 🧾</button>
+            <button onclick="printAll()" class="btn btn-sm px-4 text-white" style="background-color: #0f172a; border-radius: 8px;">طباعة الكل 🖨️</button>
         </div>
     </div>
 </div>
 
- 
-
+<!-- صفحة الفاتورة الضريبية -->
 <div class="invoice-card" id="invoiceArea">
-    <div class="company-header row align-items-center  ">
-        <div class="col-5">
-            <h1 class="main-title mt-4 mb-4" contenteditable="true" id="comp-name"> شركة مصنع الوريف للبلاستيك</h1>
-            <div class="mt-2 mb-2 text-muted">
-                <span id="label-comp-vat" contenteditable="true">الرقم الضريبي:</span> <span id="comp-vat" contenteditable="true" class="fw-bold text-dark editable">300056299900003</span><br>
-                <span id="label-comp-reg" contenteditable="true">السجل التجاري:</span> <span id="comp-reg" contenteditable="true" class="fw-bold text-dark editable">1010229656</span>
-            </div>
+    <div class="row align-items-start">
+        <div class="col-4 text-center">
+            <h1 class="main-title" contenteditable="true" id="label-invoice-title">فاتورة ضريبية</h1>
+            <div class="sub-title-en mb-2 " id="label-invoice-en" contenteditable="true">TAX Invoice</div>
+            <div id="qrcode" class=" text-center d-flex justify-content-center     mt-2  "></div>
         </div>
-        <div class="col-2 text-center">
-            <h5 class="fw-bold mt-4 mb-2" id="label-invoice-title" contenteditable="true">فاتورة ضريبية</h5>
-            <div class="badge bg-dark mt-2 mb-4" id="label-invoice-en" contenteditable="true" style="font-size: 9px;">TAX INVOICE</div>
-        </div>
-        <div class="col-5 text-end d-flex justify-content-end align-items-center gap-2">
-            <div class="small text-muted">
-                <span id="comp-addr" contenteditable="true" class="editable">الرياض - المدينة الصناعية الثانية - 14334</span>
-            </div>
-            <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
-<img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="Company Logo" id="logo-img" onclick="document.getElementById('logo-upload').click()" style="height: 90px; cursor: pointer;" title="اضغط لتغيير الشعار">
-        </div>
-    </div>
-
-    <div class="info-grid mt-4 mb-4">
-        <div class="data-box">
-            <div class="box-label" id="label-inv-details" contenteditable="true">بيانات الفاتورة (Invoice Details)</div>
-            <div class="row g-1">
-                <div class="col-4 text-muted" id="label-inv-no" contenteditable="true">رقم الفاتورة:</div> <div class="col-8 fw-bold" id="inv-no" contenteditable="true">0003-1519</div>
-                <div class="col-4 text-muted" id="label-inv-date" contenteditable="true">تاريخ الفاتورة:</div> <div class="col-8"><input type="date" id="inv-date" class="form-control-sm w-100 fw-bold" onchange="updateAll()"></div>
-                <div class="col-4 text-muted" id="label-inv-pay" contenteditable="true">طريقة الدفع:</div> <div class="col-8" id="inv-pay" contenteditable="true">نقدي / Cash</div>
-            </div>
-        </div>
-        <div class="data-box">
-            <div class="box-label" id="label-cust-details" contenteditable="true">بيانات العميل (Customer Details)</div>
-            <div class="row g-1">
-                <div class="col-4 text-muted" id="label-cust-name" contenteditable="true">اسم العميل:</div> <div class="col-8 fw-bold" id="cust-name" contenteditable="true"> شركة تصارم للمقاولات</div>
-                <div class="col-4 text-muted" id="label-cust-vat" contenteditable="true">الرقم الضريبي:</div> <div class="col-8" id="cust-vat" contenteditable="true">300063658500003</div>
-                <div class="col-4 text-muted" id="label-cust-addr" contenteditable="true">العنوان/حي:</div> <div class="col-8" id="cust-addr" contenteditable="true">الرياض - حي اشبيلية</div>
+        <div class="col-8 text-end">
+            <div class="d-flex justify-content-end align-items-start gap-2">
+                <div class="meta-section">
+                    <h5 class="fw-bold mb-0 text-dark" contenteditable="true" id="comp-name">Union God Father For Cement Products Factory Company</h5>
+                    <div class="fw-bold mb-1" contenteditable="true" id="comp-name-ar">شركة مصنع اتحاد العراب للمنتجات الخرسانية</div>
+                    <div>الرقم الضريبي : <span id="comp-vat" contenteditable="true" class="fw-bold text-dark">311209271800003</span></div>
+                    <div>هاتف : <span id="comp-phone" contenteditable="true" class="fw-bold text-dark">+966559973227</span></div>
+                    <div id="comp-addr" contenteditable="true" class="text-muted">AlNasirah, West Nassem, 2810<br>Riyadh West Naseem</div>
+                    <div>سجل تجاري رقم : <span id="comp-reg" contenteditable="true" class="fw-bold text-dark">1010458287</span></div>
+                </div>
+                <div>
+                    <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+                    <img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="الشعار" id="logo-img" onclick="document.getElementById('logo-upload').click()" style="height: 80px; cursor: pointer;">
+                </div>
             </div>
         </div>
     </div>
 
-    <table class="table-items w-100 mt-2 mb-2 table-bordered">
+    <div class="top-divider"></div>
+
+    <div class="row meta-section mb-2" dir="rtl">
+        <div class="col-8 text-end">
+            <div class="d-inline-block text-end" style="max-width: 420px;">
+                <div class="row g-1 text-start">
+                    <div class="col-3 text-muted text-start">العميل<br>Client</div>
+                    <div class="col-9 fw-bold fs-6 " id="cust-name" contenteditable="true">شركة تصارم للمقاولات</div>
+                    <div class="col-12 text-muted small mt-1 text-start">
+                        الرقم الضريبي: <span id="cust-vat" class="text-dark fw-bold" contenteditable="true">300063658500003</span><br>
+                        سجل تجاري/ رقم موحد: <span id="cust-reg" class="text-dark" contenteditable="true">7001589279</span> | <span id="cust-addr" contenteditable="true">حي الصحابة، الرياض 13243</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <table class="w-100" >
+                <tr>
+                    <td class="text-muted" width="45%">رقم الفاتورة<br>Invoice NO</td>
+                    <td class="fw-bold px-2" id="inv-no" contenteditable="true">011210</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">تاريخ الفاتورة<br>Invoice Date</td>
+                    <td class="px-2"><input type="date" id="inv-date" class="form-control-sm p-0 fw-bold w-100"></td>
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+
+    <table class="table-items" >
         <thead>
             <tr>
-                <th width="3%" id="th-num" contenteditable="true">#</th>
-                <th width="40%" id="th-item" contenteditable="true">اسم الصنف / الوصف (Item Description)</th>
-                <th width="10%" id="th-qty" contenteditable="true">الكمية</th>
-                <th width="12%" id="th-price" contenteditable="true">سعر الوحدة</th>
-                <th width="10%" id="th-vat" contenteditable="true">الضريبة 15%</th>
-                <th width="15%" id="th-total" contenteditable="true">الإجمالي (شامل)</th>
-                <th width="2%" class="no-print"></th>
+                <th width="10%">الإجمالي مع الضريبة<br>Total With VAT</th>
+                <th width="10%">قيمة الضريبة<br>VAT Amount</th>
+                <th width="8%">نسبة الضريبة<br>VAT 15%</th>
+                <th width="12%">المجموع قبل الضريبة<br>Total Before VAT</th>
+                <th width="6%">الكمية<br>Qty</th>
+                <th width="10%">السعر<br>Price</th>
+                <th width="34%">الوصف<br>Description</th>
+                <th width="10%">البند<br>Item</th>
+                <th width="3%" class="no-print"></th>
             </tr>
         </thead>
         <tbody id="itemsBody"></tbody>
     </table>
-    <button class="btn btn-sm btn-light border no-print w-100 mt-4 mb-4" onclick="addRow()">+ إضافة صنف جديد (Add Row)</button>
+    
+    <button class="btn btn-sm btn-light border no-print w-100 mt-2 mb-3" onclick="addRow()">+ إضافة صنف جديد (Add Row)</button>
 
-    <div class="data-box mt-4 mb-4" style="min-height: 80px;">
-        <div class="box-label" id="label-notes" contenteditable="true">ملاحظات / Notes:</div>
-        <div id="notes" contenteditable="true" class="text-muted small" style="min-height: 50px;"></div>
-    </div>
-
-    <div class="row justify-content-end align-items-end">
-        <div class="col-6">
-            <div class="p-2 mt-2 mb-2 h-100" style="background: #fff;">
-                 <div id="qrcode" class="d-flex justify-content-center align-items-center mb-4"  >
-                    <!-- QR Code will be generated here -->
-                </div>
+    <div class="row mt-3 align-items-start" dir="rtl">
+        <div class="col-7">
+            <div class="text-muted small mb-1 fw-bold">ملاحظات إضافية:</div>
+            <div id="notes" contenteditable="true" class="text-dark small p-2 border border-dashed rounded" style="min-height: 40px;">
+                قيمة 24 متر خرسانة عيار 350 عادي
             </div>
         </div>
         <div class="col-5">
-            <div class="p-2 border rounded bg-dark text-white">
-                <div class="d-flex justify-content-between mt-4 mb-4">
-                    <span id="label-subtotal" contenteditable="true">الإجمالي (غير شامل الضريبة):</span>
-                    <span id="sub-total">0.00</span>
-                </div>
-                <div class="d-flex justify-content-between mt-4 mb-4">
-                    <span id="label-vat" contenteditable="true">الضريبة 15%:</span>
-                    <span id="vat-total">0.00</span>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-1 fw-bold small">
-                        <span id="label-discount" contenteditable="true">الخصم</span>
-                        <select id="d-type" style="height: 25px;" onchange="updateAll()" class="form-select form-select-sm w-auto">
-                            <option value="f">ريال</option>
-                            <option value="p">%</option>
-                        </select>
-                    </div>
-                    <input type="text" id="d-val" style="height: 25px;" value="0" class="form-control form-control-sm w-25 text-end" oninput="enforceEnglishNumbers(this); updateAll()">
-                </div>
-
-            
-                <div class="d-flex justify-content-between fw-bold fs-6 mt-4 mb-4">
-                    <span id="label-grand-total" contenteditable="true">الإجمالي المستحق:</span>
-                    <span id="grand-total">0.00</span>
-                </div>
-            </div>
-           
+            <table class="totals-table">
+                <tr>
+                    <td class="totals-label">الإجمالي قبل الضريبة<br>Total Before VAT</td>
+                    <td class="totals-value" id="sub-total">0.00</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">القيمة المضافة شاملة (%15)<br>VAT 15%</td>
+                    <td class="totals-value" id="vat-total">0.00</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">الإجمالي بعد الضريبة<br>Total After VAT</td>
+                    <td class="totals-value" id="grand-total">0.00</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">مدفوع<br>Paid</td>
+                    <td class="totals-value text-primary" id="paid-amount" contenteditable="true">5,520.00</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">الرصيد المستحق<br>Due Amount</td>
+                    <td class="totals-value text-danger" id="due-amount">0.00</td>
+                </tr>
+            </table>
         </div>
-    </div>
-
-    <div class="footer-section">
-        
     </div>
 </div>
 
-<!-- سند القبض -->
-<div class="invoice-card mt-5" id="receiptArea">
-    <div class="company-header row align-items-center">
-        <div class="col-5">
-            <h1 class="main-title mt-4 mb-4" id="receipt-comp-name"> شركة مصنع الوريف للبلاستيك</h1>
-            <div class="mt-2 mb-2 text-muted">
-                <span id="receipt-label-comp-vat">الرقم الضريبي:</span> <span id="receipt-comp-vat" class="fw-bold text-dark">300056299900003</span><br>
-                <span id="receipt-label-comp-reg">السجل التجاري:</span> <span id="receipt-comp-reg" class="fw-bold text-dark">1010229656</span>
-            </div>
+<!-- صفحة سند القبض المستقلة المسمعة تلقائياً -->
+<div class="invoice-card" id="receiptArea">
+    <div class="row align-items-start">
+        <div class="col-4 text-end">
+            <img src="" alt="الشعار" id="r-logo-img" style="height: 80px;">
         </div>
-        <div class="col-2 text-center">
-            <h5 class="fw-bold mt-4 mb-2">سند قبض</h5>
-            <div class="badge bg-dark mt-2 mb-4" style="font-size: 9px;">RECEIPT</div>
-        </div>
-        <div class="col-5 text-end d-flex justify-content-end align-items-center gap-2">
-            <div class="small text-muted">
-                <span id="receipt-comp-addr">الرياض - المدينة الصناعية الثانية - 14334</span>
-            </div>
-            <img src="https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg" alt="Company Logo" id="receipt-logo-img" style="height: 90px;">
+        <div class="col-8 text-start">
+            <h5 class="fw-bold mb-0 text-dark" id="r-comp-name"></h5>
+            <div class="fw-bold mb-1" id="r-comp-name-ar"></div>
+            <div>الرقم الضريبي : <span id="r-comp-vat" class="fw-bold text-dark"></span></div>
+            <div>هاتف : <span id="r-comp-phone" class="fw-bold text-dark"></span></div>
+            <div id="r-comp-addr" class="text-muted"></div>
         </div>
     </div>
 
-    <div class="info-grid mt-4 mb-4">
-        <div class="data-box">
-            <div class="box-label">بيانات السند (Receipt Details)</div>
-            <div class="row g-1">
-                <div class="col-4 text-muted">رقم الفاتورة:</div> <div class="col-8 fw-bold" id="receipt-inv-no">0003-1519</div>
-                <div class="col-4 text-muted">تاريخ الفاتورة:</div> <div class="col-8" id="receipt-inv-date"></div>
-                <div class="col-4 text-muted">طريقة الدفع:</div> <div class="col-8" id="receipt-inv-pay">نقدي / Cash</div>
-            </div>
+    <div class="top-divider"></div>
+
+    <div class="row meta-section mb-4" dir="rtl">
+         <div class="col-6 text-start">
+            <span class="text-muted">المستلم منه (العميل):</span>
+            <div class="fw-bold fs-6" id="r-cust-name"></div>
+            <div class="small text-muted">الرقم الضريبي للعميل: <span id="r-cust-vat" class="text-dark fw-bold"></span></div>
         </div>
-        <div class="data-box">
-            <div class="box-label">بيانات العميل (Customer Details)</div>
-            <div class="row g-1">
-                <div class="col-4 text-muted">اسم العميل:</div> <div class="col-8 fw-bold" id="receipt-cust-name"> شركة تصارم للمقاولات</div>
-                <div class="col-4 text-muted">الرقم الضريبي:</div> <div class="col-8" id="receipt-cust-vat">300063658500003</div>
-                <div class="col-4 text-muted">العنوان/حي:</div> <div class="col-8" id="receipt-cust-addr">الرياض - حي اشبيلية</div>
-            </div>
+        <div class="col-6">
+            <table class="w-100">
+                <tr>
+                    <td class="text-muted" width="40%">تابع لفاتورة رقم:</td>
+                    <td class="fw-bold px-2" id="r-inv-no"></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">تاريخ السند:</td>
+                    <td class="fw-bold px-2" id="r-inv-date"></td>
+                </tr>
+            </table>
         </div>
     </div>
 
-    <div class="p-2 border rounded bg-dark text-white">
-        <div class="d-flex justify-content-between mt-4 mb-4">
-            <span>الإجمالي (غير شامل الضريبة):</span>
-            <span id="receipt-sub-total">0.00</span>
-        </div>
-        <div class="d-flex justify-content-between mt-4 mb-4">
-            <span>الضريبة 15%:</span>
-            <span id="receipt-vat-total">0.00</span>
-        </div>
-        <div class="d-flex justify-content-between fw-bold fs-6 mt-4 mb-4">
-            <span>الإجمالي المستحق:</span>
-            <span id="receipt-grand-total">0.00</span>
-        </div>
+    <div class="p-3 border rounded bg-light mb-4 text-dark meta-section text-center" style="font-size: 13px; line-height: 2;">
+        <div>إستلمنا من السادة / <span class="fw-bold text-primary" id="r-text-cust"></span></div>
+        <div>مبلغاً وقدره: <span class="fw-bold text-success" id="r-text-amount"></span> ريال سعودي لا غير.</div>
+        <div>وذلك عن: <span class="fw-bold" id="r-text-notes"></span></div>
     </div>
 
-    <div class="mt-4 mb-4">
-        <div class="box-label">توقيع العميل (Customer Signature)</div>
-        <div style="height: 80px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999;">
-            _________________________
+    <div class="row mt-4">
+        <div class="col-6">
+            <table class="totals-table w-100">
+                <tr>
+                    <td class="totals-label">إجمالي قيمة الفاتورة شاملة</td>
+                    <td class="totals-value" id="r-total-invoice">0.00</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">المبلغ المدفوع بالسند</td>
+                    <td class="totals-value text-success" id="r-total-paid">0.00</td>
+                </tr>
+                <tr>
+                    <td class="totals-label">الرصيد المتبقي مستحقاً</td>
+                    <td class="totals-value text-danger" id="r-total-due">0.00</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-6 text-center d-flex flex-column justify-content-end align-items-center">
+            <div class="small text-muted mb-4">توقيع وختم الجهة المستلمة</div>
+            <div class="fw-bold" style="border-top: 1px dashed #000; width: 180px;">أمين الصندوق / المبيعات</div>
         </div>
     </div>
 </div>
 
 <script>
-    // تهيئة التاريخ لليوم
-    document.getElementById('inv-date').valueAsDate = new Date();
-
-    function updateLogoSrc(input) {
-        const logoImg = document.getElementById('logo-img');
-        logoImg.src = input.value;
-        saveCache();
-    }
-
     function handleLogoUpload(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const logoImg = document.getElementById('logo-img');
-                logoImg.src = e.target.result;
-                saveCache();
+                document.getElementById('logo-img').src = e.target.result;
+                updateAll();
             };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function addRow(d='', q=1, p=0, total=0, vat=0) {
+    function addRow(itemText='', d='', q=1, p=0, sub=0, vat=0, total=0) {
         const tbody = document.getElementById('itemsBody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td class="text-center text-muted small">${tbody.rows.length + 1}</td>
-            <td><input type="text" class="form-control-sm w-100 item-d" value="${d}" placeholder="اسم الصنف"></td>
+            <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-total fw-bold text-success" value="${parseFloat(total).toFixed(2)}" oninput="calcByTotal(this)"></td>
+            <td class="text-center item-vat-val">${parseFloat(vat).toFixed(2)}</td>
+            <td class="text-center text-muted">15%</td>
+            <td class="text-center item-sub-val fw-bold">${parseFloat(sub).toFixed(2)}</td>
             <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-q" value="${q}" oninput="calcByQty(this)"></td>
             <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-p" value="${parseFloat(p).toFixed(2)}" oninput="calcByQty(this)"></td>
-            <td class="text-center item-vat-val">${parseFloat(vat).toFixed(2)}</td>
-            <td><input type="text" inputmode="decimal" class="form-control-sm w-100 text-center item-total editable-total" value="${parseFloat(total).toFixed(2)}" oninput="calcByTotal(this)"></td>
-            <td class="no-print text-center"><button class="btn btn-sm text-danger" onclick="this.closest('tr').remove(); updateAll()">✕</button></td>
+            <td><input type="text" class="form-control-sm w-100 item-d text-end" value="${d}" placeholder="الوصف"></td>
+            <td><input type="text" class="form-control-sm w-100 item-text-id text-center fw-bold" value="${itemText}" placeholder="البند (نص)"></td>
+            <td class="no-print text-center"><button class="btn btn-sm text-danger p-0" onclick="this.closest('tr').remove(); updateAll()">✕</button></td>
         `;
         tbody.appendChild(tr);
         updateAll();
     }
 
-    // 1. الحساب التقليدي (كمية * سعر)
     function calcByQty(input) {
         const row = input.closest('tr');
-        const stillTyping = enforceEnglishNumbers(input); // تحويل الأرقام العربية للإنجليزية
-        
-        // لو المستخدم لسه بيكتب كسر (انتهى بنقطة)، متكملش الحساب
-        if (stillTyping) return;
-        
+        enforceEnglishNumbers(input);
         const qty = parseFloat(row.querySelector('.item-q').value) || 0;
         const price = parseFloat(row.querySelector('.item-p').value) || 0;
         
@@ -377,370 +443,170 @@
         const lineVat = lineSub * 0.15;
         const lineTotal = lineSub + lineVat;
 
+        row.querySelector('.item-sub-val').innerText = lineSub.toFixed(2);
         row.querySelector('.item-vat-val').innerText = lineVat.toFixed(2);
         row.querySelector('.item-total').value = lineTotal.toFixed(2);
         updateAll();
     }
 
-    // تحويل الأرقام العربية إلى إنجليزية
- 
-
-    // معالجة إدخال الأرقام العربية
-    function enforceEnglishNumbers(input) {
-        let value = input.value;
-
-        // متحدثش القيمة لو المستخدم لسه بيكتب كسر (بينتهي بنقطة)
-        if (value.endsWith('.') || value.endsWith(',')) {
-            return true; // true = لسه بيكتب
-        }
-
-        // السماح فقط بالأرقام والنقطة - تجنب النقاط المتعددة
-        let cleanValue = '';
-        let hasDecimal = false;
-        for (let char of value) {
-            if (char >= '0' && char <= '9') {
-                cleanValue += char;
-            } else if ((char === '.' || char === ',') && !hasDecimal) {
-                cleanValue += '.';
-                hasDecimal = true;
-            }
-        }
-
-        input.value = cleanValue;
-        return false; // false = خلاص خلص
-    }
-
-    // 2. الحساب العكسي (لو كتبت الإجمالي هو يحسب السعر)
     function calcByTotal(input) {
         const row = input.closest('tr');
-        if (!row) return;
+        enforceEnglishNumbers(input);
+        const totalWithVat = parseFloat(input.value) || 0;
+        const qty = parseFloat(row.querySelector('.item-q').value) || 0;
 
-        // تحويل الأرقام العربية للإنجليزية
-        let rawValue = input.value;
-        rawValue = rawValue;
-        
-        // تنظيف القيمة من الأحرف غير المرغوبة
-        let cleanValue = '';
-        let hasDecimal = false;
-        for (let char of rawValue) {
-            if (char >= '0' && char <= '9') {
-                cleanValue += char;
-            } else if (char === '.' && !hasDecimal) {
-                cleanValue += char;
-                hasDecimal = true;
-            }
-        }
-        
-        const totalWithVat = parseFloat(cleanValue) || 0;
-        input.value = cleanValue; // حفظ القيمة المنظفة
-        
-        const qty = parseFloat(row.querySelector('.item-q')?.value) || 0;
+        if (qty <= 0) return;
 
-        if (qty <= 0 || totalWithVat <= 0) {
-            row.querySelector('.item-p').value = '0';
-            row.querySelector('.item-vat-val').innerText = '0.00';
-            updateAll();
-            return;
-        }
-
-        // السعر قبل الضريبة = الإجمالي / 1.15
         const lineSub = totalWithVat / 1.15;
         const lineVat = totalWithVat - lineSub;
-        const unitPrice = lineSub / qty;
+        const price = lineSub / qty;
 
-        const priceInput = row.querySelector('.item-p');
-        const vatElement = row.querySelector('.item-vat-val');
-
-        if (priceInput) priceInput.value = unitPrice.toFixed(2);
-        if (vatElement) vatElement.innerText = lineVat.toFixed(2);
-
+        row.querySelector('.item-p').value = price.toFixed(2);
+        row.querySelector('.item-sub-val').innerText = lineSub.toFixed(2);
+        row.querySelector('.item-vat-val').innerText = lineVat.toFixed(2);
         updateAll();
     }
 
+    function enforceEnglishNumbers(input) {
+        input.value = input.value.replace(/[^0-9.]/g, '');
+    }
+
     function updateAll() {
-        let sub = 0; let tax = 0; let totalWithVat = 0; let discount = 0;
+        let sub = 0; let tax = 0; let grand = 0;
+        
         document.querySelectorAll('#itemsBody tr').forEach(row => {
-            const q = parseFloat(row.querySelector('.item-q')?.value) || 0;
-            const p = parseFloat(row.querySelector('.item-p')?.value) || 0;
+            const q = parseFloat(row.querySelector('.item-q').value) || 0;
+            const p = parseFloat(row.querySelector('.item-p').value) || 0;
             const lineSub = q * p;
-            const lineVat = parseFloat(row.querySelector('.item-vat-val')?.innerText) || 0;
-            const lineTotal = parseFloat(row.querySelector('.item-total')?.value) || 0;
+            const lineVat = lineSub * 0.15;
+            const lineTotal = lineSub + lineVat;
             
-            sub += lineSub; 
+            sub += lineSub;
             tax += lineVat;
-            totalWithVat += lineTotal;
-
-            const vatElement = row.querySelector('.item-vat-val');
-
-            if (vatElement) vatElement.innerText = lineVat.toFixed(2);
-           
+            grand += lineTotal;
         });
 
-        const discountType = document.getElementById('d-type')?.value;
-        const discountValue = parseFloat(document.getElementById('d-val')?.value) || 0;
-        if (discountType === 'f') {
-            discount = Math.max(0, discountValue);
-        } else if (discountType === 'p') {
-            discount = Math.max(0, (totalWithVat * discountValue) / 100);
-        }
+        document.getElementById('sub-total').innerText = sub.toFixed(2);
+        document.getElementById('vat-total').innerText = tax.toFixed(2);
+        document.getElementById('grand-total').innerText = grand.toFixed(2);
 
-        const total = Math.max(0, totalWithVat - discount);
+        const paidRaw = document.getElementById('paid-amount').innerText.replace(/[^0-9.]/g, '');
+        const paid = parseFloat(paidRaw) || 0;
+        const due = grand - paid;
+        document.getElementById('due-amount').innerText = due.toFixed(2);
 
-        const subTotalElement = document.getElementById('sub-total');
-        const vatTotalElement = document.getElementById('vat-total');
-         const grandTotalElement = document.getElementById('grand-total');
-
-        if (subTotalElement) subTotalElement.innerText = sub.toFixed(2);
-        if (vatTotalElement) vatTotalElement.innerText = tax.toFixed(2);
-     
-        if (grandTotalElement) grandTotalElement.innerText = total.toFixed(2);
-
-        // تحديث الباركود بناءً على البيانات الحالية
-        generateZatcaQR(
-            document.getElementById('comp-name')?.innerText || '',
-            document.getElementById('comp-vat')?.innerText || '',
-            document.getElementById('inv-date')?.value || '',
-            total,
-            tax
-        );
+        // التسميع التلقائي داخل السند
+        document.getElementById('r-comp-name').innerText = document.getElementById('comp-name').innerText;
+        document.getElementById('r-comp-name-ar').innerText = document.getElementById('comp-name-ar').innerText;
+        document.getElementById('r-comp-vat').innerText = document.getElementById('comp-vat').innerText;
+        document.getElementById('r-comp-phone').innerText = document.getElementById('comp-phone').innerText;
+        document.getElementById('r-comp-addr').innerHTML = document.getElementById('comp-addr').innerHTML;
+        document.getElementById('r-logo-img').src = document.getElementById('logo-img').src;
         
-        // تحديث سند القبض
-        updateReceipt();
+        document.getElementById('r-inv-no').innerText = document.getElementById('inv-no').innerText;
+        document.getElementById('r-inv-date').innerText = document.getElementById('inv-date').value;
+        
+        document.getElementById('r-cust-name').innerText = document.getElementById('cust-name').innerText;
+        document.getElementById('r-text-cust').innerText = document.getElementById('cust-name').innerText;
+        document.getElementById('r-cust-vat').innerText = document.getElementById('cust-vat').innerText;
+        
+        document.getElementById('r-text-amount').innerText = paid.toLocaleString('ar-SA', { minimumFractionDigits: 2 });
+        document.getElementById('r-text-notes').innerText = document.getElementById('notes').innerText;
+        
+        document.getElementById('r-total-invoice').innerText = grand.toFixed(2);
+        document.getElementById('r-total-paid').innerText = paid.toFixed(2);
+        document.getElementById('r-total-due').innerText = due.toFixed(2);
+
+        // توليد الـ QR كود للفاتورة والـ LocalStorage التلقائي
+        generateZatcaQR("qrcode", document.getElementById('comp-name-ar').innerText, document.getElementById('comp-vat').innerText, document.getElementById('inv-date').value, grand, tax);
         saveCache();
     }
- 
 
-    function generateZatcaQR(seller, vat, date, total, tax) {
-        const time = new Date().toISOString();
+    function generateZatcaQR(elementId, seller, vat, date, total, tax) {
         const tlv = (tag, val) => {
             const v = new TextEncoder().encode(val);
             return new Uint8Array([tag, v.length, ...v]);
         };
-        // دمج التاريخ مع الوقت الحالي لضمان صحة الباركود
-        const fullDate = date + "T" + new Date().toLocaleTimeString('en-GB');
-        
+        const fullDate = (date || new Date().toISOString().split('T')[0]) + "T" + new Date().toLocaleTimeString('en-GB');
         const ArrayData = new Uint8Array([
             ...tlv(1, seller), ...tlv(2, vat), ...tlv(3, fullDate),
             ...tlv(4, total.toFixed(2)), ...tlv(5, tax.toFixed(2))
         ]);
         const b64 = btoa(String.fromCharCode(...ArrayData));
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: b64, width: 150, height: 150, correctLevel : QRCode.CorrectLevel.M });
-    }
-
-    function updateReceipt() {
-        // تحديث بيانات الشركة في سند القبض
-        const receiptCompName = document.getElementById('receipt-comp-name');
-        const receiptCompVat = document.getElementById('receipt-comp-vat');
-        const receiptCompReg = document.getElementById('receipt-comp-reg');
-        const receiptCompAddr = document.getElementById('receipt-comp-addr');
-        const receiptLogoImg = document.getElementById('receipt-logo-img');
-        
-        if (receiptCompName) receiptCompName.innerText = document.getElementById('comp-name').innerText;
-        if (receiptCompVat) receiptCompVat.innerText = document.getElementById('comp-vat').innerText;
-        if (receiptCompReg) receiptCompReg.innerText = document.getElementById('comp-reg').innerText;
-        if (receiptCompAddr) receiptCompAddr.innerText = document.getElementById('comp-addr').innerText;
-        if (receiptLogoImg) receiptLogoImg.src = document.getElementById('logo-img').src;
-        
-        // تحديث بيانات الفاتورة في سند القبض
-        const receiptInvNo = document.getElementById('receipt-inv-no');
-        const receiptInvDate = document.getElementById('receipt-inv-date');
-        const receiptInvPay = document.getElementById('receipt-inv-pay');
-        
-        if (receiptInvNo) receiptInvNo.innerText = document.getElementById('inv-no').innerText;
-        if (receiptInvDate) receiptInvDate.innerText = document.getElementById('inv-date').value;
-        if (receiptInvPay) receiptInvPay.innerText = document.getElementById('inv-pay').innerText;
-        
-        // تحديث بيانات العميل في سند القبض
-        const receiptCustName = document.getElementById('receipt-cust-name');
-        const receiptCustVat = document.getElementById('receipt-cust-vat');
-        const receiptCustAddr = document.getElementById('receipt-cust-addr');
-        
-        if (receiptCustName) receiptCustName.innerText = document.getElementById('cust-name').innerText;
-        if (receiptCustVat) receiptCustVat.innerText = document.getElementById('cust-vat').innerText;
-        if (receiptCustAddr) receiptCustAddr.innerText = document.getElementById('cust-addr').innerText;
-        
-        // تحديث الإجماليات في سند القبض
-        const receiptSubTotal = document.getElementById('receipt-sub-total');
-        const receiptVatTotal = document.getElementById('receipt-vat-total');
-        const receiptGrandTotal = document.getElementById('receipt-grand-total');
-        
-        if (receiptSubTotal) receiptSubTotal.innerText = document.getElementById('sub-total').innerText;
-        if (receiptVatTotal) receiptVatTotal.innerText = document.getElementById('vat-total').innerText;
-        if (receiptGrandTotal) receiptGrandTotal.innerText = document.getElementById('grand-total').innerText;
+        document.getElementById(elementId).innerHTML = "";
+        new QRCode(document.getElementById(elementId), { text: b64, width: 150, height: 150 });
     }
 
     function saveCache() {
         const items = Array.from(document.querySelectorAll('#itemsBody tr')).map(r => ({
+            itemText: r.querySelector('.item-text-id').value,
             d: r.querySelector('.item-d').value,
             q: r.querySelector('.item-q').value,
             p: r.querySelector('.item-p').value,
-            t: r.querySelector('.item-total').value,
-            v: r.querySelector('.item-vat-val').innerText
+            sub: r.querySelector('.item-sub-val').innerText,
+            vat: r.querySelector('.item-vat-val').innerText,
+            tot: r.querySelector('.item-total').value
         }));
         const data = {
             compName: document.getElementById('comp-name').innerText,
+            compNameAr: document.getElementById('comp-name-ar').innerText,
             compVat: document.getElementById('comp-vat').innerText,
+            compPhone: document.getElementById('comp-phone').innerText,
+            compAddr: document.getElementById('comp-addr').innerHTML,
             compReg: document.getElementById('comp-reg').innerText,
-            compAddr: document.getElementById('comp-addr').innerText,
+            invNo: document.getElementById('inv-no').innerText,
             invDate: document.getElementById('inv-date').value,
             custName: document.getElementById('cust-name').innerText,
             custVat: document.getElementById('cust-vat').innerText,
+            custReg: document.getElementById('cust-reg').innerText,
             custAddr: document.getElementById('cust-addr').innerText,
-            invNo: document.getElementById('inv-no').innerText,
-            invPay: document.getElementById('inv-pay').innerText,
-            logoSrc: document.getElementById('logo-img').src,
-            items: items,
-            discountType: document.getElementById('d-type').value,
-            discountValue: document.getElementById('d-val').value,
-            // Labels
-            labelCompVat: document.getElementById('label-comp-vat').innerText,
-            labelCompReg: document.getElementById('label-comp-reg').innerText,
-            labelInvoiceTitle: document.getElementById('label-invoice-title').innerText,
-            labelInvoiceEn: document.getElementById('label-invoice-en').innerText,
-            labelInvDetails: document.getElementById('label-inv-details').innerText,
-            labelInvNo: document.getElementById('label-inv-no').innerText,
-            labelInvDate: document.getElementById('label-inv-date').innerText,
-            labelInvPay: document.getElementById('label-inv-pay').innerText,
-            labelCustDetails: document.getElementById('label-cust-details').innerText,
-            labelCustName: document.getElementById('label-cust-name').innerText,
-            labelCustVat: document.getElementById('label-cust-vat').innerText,
-            labelCustAddr: document.getElementById('label-cust-addr').innerText,
-            thNum: document.getElementById('th-num').innerText,
-            thItem: document.getElementById('th-item').innerText,
-            thQty: document.getElementById('th-qty').innerText,
-            thPrice: document.getElementById('th-price').innerText,
-            thVat: document.getElementById('th-vat').innerText,
-            thTotal: document.getElementById('th-total').innerText,
-            labelSubtotal: document.getElementById('label-subtotal').innerText,
-            labelVat: document.getElementById('label-vat').innerText,
-            labelDiscount: document.getElementById('label-discount').innerText,
-            labelGrandTotal: document.getElementById('label-grand-total').innerText,
+            paid: document.getElementById('paid-amount').innerText,
             notes: document.getElementById('notes').innerText,
-            labelNotes: document.getElementById('label-notes').innerText
+            logoSrc: document.getElementById('logo-img').src,
+            items: items
         };
-        localStorage.setItem('alwareef_invoice_v4', JSON.stringify(data));
+        localStorage.setItem('alwareef_invoice_v6_matched', JSON.stringify(data));
     }
 
     function loadCache() {
-        const cache = localStorage.getItem('alwareef_invoice_v4');
+        const cache = localStorage.getItem('alwareef_invoice_v6_matched');
         if(cache) {
             const d = JSON.parse(cache);
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('comp-name').innerText = d.compName || ' شركة مصنع الوريف للبلاستيك';
-            document.getElementById('comp-vat').innerText = d.compVat || '300056299900003';
-            document.getElementById('comp-reg').innerText = d.compReg || '1010229656';
-            document.getElementById('comp-addr').innerText = d.compAddr || 'الرياض - المدينة الصناعية الثانية - 14334';
-            document.getElementById('inv-date').value = d.invDate || today;
-            document.getElementById('cust-name').innerText = d.custName || ' شركة تصارم للمقاولات';
-            document.getElementById('cust-vat').innerText = d.custVat || '300063658500003';
-            document.getElementById('cust-addr').innerText = d.custAddr || 'الرياض - حي اشبيلية';
-            document.getElementById('inv-no').innerText = d.invNo || '0001';
-            document.getElementById('inv-pay').innerText = d.invPay || 'نقدي / Cash';
-            document.getElementById('logo-img').src = d.logoSrc || 'https://upload.wikimedia.org/wikipedia/ar/a/ae/Zatca_logo.svg';
-            document.getElementById('d-type').value = d.discountType || 'f';
-            document.getElementById('d-val').value = d.discountValue || '0';
-            // Labels
-            if (d.labelCompVat) document.getElementById('label-comp-vat').innerText = d.labelCompVat;
-            if (d.labelCompReg) document.getElementById('label-comp-reg').innerText = d.labelCompReg;
-            if (d.labelInvoiceTitle) document.getElementById('label-invoice-title').innerText = d.labelInvoiceTitle;
-            if (d.labelInvoiceEn) document.getElementById('label-invoice-en').innerText = d.labelInvoiceEn;
-            if (d.labelInvDetails) document.getElementById('label-inv-details').innerText = d.labelInvDetails;
-            if (d.labelInvNo) document.getElementById('label-inv-no').innerText = d.labelInvNo;
-            if (d.labelInvDate) document.getElementById('label-inv-date').innerText = d.labelInvDate;
-            if (d.labelInvPay) document.getElementById('label-inv-pay').innerText = d.labelInvPay;
-            if (d.labelCustDetails) document.getElementById('label-cust-details').innerText = d.labelCustDetails;
-            if (d.labelCustName) document.getElementById('label-cust-name').innerText = d.labelCustName;
-            if (d.labelCustVat) document.getElementById('label-cust-vat').innerText = d.labelCustVat;
-            if (d.labelCustAddr) document.getElementById('label-cust-addr').innerText = d.labelCustAddr;
-            if (d.thNum) document.getElementById('th-num').innerText = d.thNum;
-            if (d.thItem) document.getElementById('th-item').innerText = d.thItem;
-            if (d.thQty) document.getElementById('th-qty').innerText = d.thQty;
-            if (d.thPrice) document.getElementById('th-price').innerText = d.thPrice;
-            if (d.thVat) document.getElementById('th-vat').innerText = d.thVat;
-            if (d.thTotal) document.getElementById('th-total').innerText = d.thTotal;
-            if (d.labelSubtotal) document.getElementById('label-subtotal').innerText = d.labelSubtotal;
-            if (d.labelVat) document.getElementById('label-vat').innerText = d.labelVat;
-            if (d.labelDiscount) document.getElementById('label-discount').innerText = d.labelDiscount;
-            if (d.labelGrandTotal) document.getElementById('label-grand-total').innerText = d.labelGrandTotal;
-            if (d.notes) document.getElementById('notes').innerText = d.notes;
-            if (d.labelNotes) document.getElementById('label-notes').innerText = d.labelNotes;
+            document.getElementById('comp-name').innerText = d.compName;
+            document.getElementById('comp-name-ar').innerText = d.compNameAr;
+            document.getElementById('comp-vat').innerText = d.compVat;
+            document.getElementById('comp-phone').innerText = d.compPhone;
+            document.getElementById('comp-addr').innerHTML = d.compAddr;
+            document.getElementById('comp-reg').innerText = d.compReg;
+            document.getElementById('inv-no').innerText = d.invNo;
+            document.getElementById('inv-date').value = d.invDate;
+            document.getElementById('cust-name').innerText = d.custName;
+            document.getElementById('cust-vat').innerText = d.custVat;
+            document.getElementById('cust-reg').innerText = d.custReg;
+            document.getElementById('cust-addr').innerText = d.custAddr;
+            document.getElementById('paid-amount').innerText = d.paid;
+            document.getElementById('notes').innerText = d.notes;
+            document.getElementById('logo-img').src = d.logoSrc;
+            
             if (d.items && d.items.length > 0) {
-                d.items.forEach(i => addRow(i.d, i.q, i.p, i.t, i.v));
+                d.items.forEach(i => addRow(i.itemText, i.d, i.q, i.p, i.sub, i.vat, i.tot));
             } else {
-                addRow('', 1, 0);
+              addRow('', '', 1, 0, 0, 0, 0);
             }
         } else {
-            addRow('', 1, 0);
+            document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+            addRow('', '', 1, 0, 0, 0, 0);
         }
     }
 
-    function resetInvoice() {
-        if(confirm("بدء فاتورة جديدة؟")) {
-            const cache = localStorage.getItem('alwareef_invoice_v4');
-            if (cache) {
-                const d = JSON.parse(cache);
-                const today = new Date().toISOString().split('T')[0];
-                const preservedData = {
-                    compName: d.compName,
-                    compVat: d.compVat,
-                    compReg: d.compReg,
-                    compAddr: d.compAddr,
-                    logoSrc: d.logoSrc,
-                    custName: d.custName,
-                    custVat: d.custVat,
-                    custAddr: d.custAddr,
-                    invNo: '0001',
-                    invPay: 'نقدي / Cash',
-                    invDate: today,
-                    items: []
-                };
-                localStorage.setItem('alwareef_invoice_v4', JSON.stringify(preservedData));
-            }
-            location.reload();
-        }
-    }
-
-    // حفظ البيانات عند أي تعديل
-    function autoSave() {
+    window.onload = () => {
+        loadCache();
         document.addEventListener('input', (e) => {
             if(e.target.hasAttribute('contenteditable') || e.target.tagName === 'INPUT') {
                 updateAll();
-                saveCache();
             }
         });
-    }
-
-
-    
-
-    // تفعيل الحفظ التلقائي عند تحميل الصفحة
-    window.onload = () => {
-        loadCache();
-        autoSave();
     };
-
-   function printReceipt() {
-    let content = document.getElementById('receiptArea').innerHTML;
-    let original = document.body.innerHTML;
-
-    document.body.innerHTML = content;
-    window.print();
-    document.body.innerHTML = original;
-
-    location.reload();
-}
-
-  function printInvoice() {
-    let content = document.getElementById('invoiceArea').innerHTML;
-    let original = document.body.innerHTML;
-
-    document.body.innerHTML = content;
-    window.print();
-    document.body.innerHTML = original;
-
-    location.reload();
-}
 </script>
 </body>
 </html>
